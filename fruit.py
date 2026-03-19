@@ -1,2 +1,2 @@
 def favourite_fruits() -> list[str]:
-    return ["apple", "banana", "cherry"]
+    return ["apple", "banana", "cherry", "grapes"]
