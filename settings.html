@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exercise-Tracker – Settings</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-50">
+
+  <div id="overlay" class="fixed inset-0 bg-black/40 z-20 hidden" onclick="toggleSidebar()"></div>
+
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-200 z-30 flex flex-col -translate-x-full md:translate-x-0 transition-transform duration-200">
+    <div class="flex items-center gap-2 h-14 px-5 border-b border-gray-200">
+      <i class="fas fa-dumbbell text-indigo-600"></i>
+      <span class="font-bold text-gray-900">Exercise-Tracker</span>
+    </div>
+    <nav class="flex-1 p-3 space-y-1">
+      <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-house w-4"></i> Dashboard</a>
+      <a href="log_exercise.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-plus w-4"></i> Log Exercise</a>
+      <a href="history.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-list w-4"></i> History</a>
+      <a href="goals.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-bullseye w-4"></i> Goals</a>
+      <a href="social.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-users w-4"></i> Social Feed</a>
+      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"><i class="fas fa-user w-4"></i> Profile</a>
+      <a href="settings.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700"><i class="fas fa-gear w-4"></i> Settings</a>
+    </nav>
+    <div class="p-3 border-t border-gray-200">
+      <div class="flex items-center gap-3 px-3 py-2">
+        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">J</div>
+        <span class="text-sm font-medium text-gray-900">John Doe</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-200 flex items-center gap-3 px-4 z-10">
+    <button onclick="toggleSidebar()"><i class="fas fa-bars text-gray-600"></i></button>
+    <span class="font-bold text-gray-900">Exercise-Tracker</span>
+  </div>
+
+  <main class="md:ml-60 pt-14 md:pt-0 p-6 max-w-xl">
+
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+      <p class="text-gray-500 text-sm mt-1">Manage your account and preferences</p>
+    </div>
+
+    <div id="saveSuccess" class="hidden mb-5 bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
+      ✅ Settings saved!
+    </div>
+
+    <!-- Profile -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Profile</h2>
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+            <input type="text" value="John" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+            <input type="text" value="Doe" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+          <input type="text" value="johndoe" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input type="email" value="johndoe@email.com" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Notifications</h2>
+      <div class="space-y-3">
+        <label class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900">Workout reminders</p>
+            <p class="text-xs text-gray-400">Get reminded on your training days</p>
+          </div>
+          <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900">Goal progress alerts</p>
+            <p class="text-xs text-gray-400">Notify me when I'm close to a goal</p>
+          </div>
+          <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900">Friend activity</p>
+            <p class="text-xs text-gray-400">When friends log workouts or share achievements</p>
+          </div>
+          <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900">Streak warnings</p>
+            <p class="text-xs text-gray-400">Alert me if my streak is about to break</p>
+          </div>
+          <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-900">Weekly summary</p>
+            <p class="text-xs text-gray-400">Receive a weekly report every Sunday</p>
+          </div>
+          <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer" />
+        </label>
+      </div>
+    </div>
+
+    <!-- Training days + reminder time -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <h2 class="text-base font-semibold text-gray-900 mb-1">Training Schedule</h2>
+      <p class="text-xs text-gray-400 mb-4">Reminders will be sent on selected days</p>
+      <div class="mb-4">
+        <p class="text-sm font-medium text-gray-700 mb-2">Training Days</p>
+        <div class="flex flex-wrap gap-2">
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Mon</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Tue</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Wed</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Thu</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Fri</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Sat</label>
+          <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Sun</label>
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Reminder Time</label>
+        <input type="time" value="07:30" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Privacy</h2>
+      <div class="space-y-2">
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="radio" name="privacy" value="public" checked class="accent-indigo-600" />
+          <div>
+            <span class="font-medium text-gray-900">Public</span>
+            <span class="text-gray-400 ml-1">– anyone can see your workouts</span>
+          </div>
+        </label>
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="radio" name="privacy" value="friends" class="accent-indigo-600" />
+          <div>
+            <span class="font-medium text-gray-900">Friends Only</span>
+            <span class="text-gray-400 ml-1">– only friends can see your activity</span>
+          </div>
+        </label>
+        <label class="flex items-center gap-2 text-sm cursor-pointer">
+          <input type="radio" name="privacy" value="private" class="accent-indigo-600" />
+          <div>
+            <span class="font-medium text-gray-900">Private</span>
+            <span class="text-gray-400 ml-1">– only you can see your data</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Change Password</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+          <input type="password" placeholder="••••••••" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+          <input type="password" placeholder="••••••••" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Save -->
+    <div class="flex gap-3">
+      <a href="dashboard.html" class="flex-1 text-center border border-gray-200 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-50">Cancel</a>
+      <button onclick="saveSettings()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm">Save Settings</button>
+    </div>
+
+  </main>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('-translate-x-full');
+      document.getElementById('overlay').classList.toggle('hidden');
+    }
+
+    function saveSettings() {
+      const msg = document.getElementById('saveSuccess');
+      msg.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => msg.classList.add('hidden'), 3000);
+    }
+  </script>
+</body>
+</html>
