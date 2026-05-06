@@ -41,8 +41,20 @@
     </nav>
     <div class="p-3 border-t border-slate-100">
       <div class="flex items-center gap-3 px-3 py-2">
-        <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">J</div>
-        <span class="text-sm font-medium text-slate-900">John Doe</span>
+        <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm shrink-0">
+          {{ current_user.username[0]|upper if current_user.is_authenticated else '?' }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-slate-900 truncate">{{ current_user.username if current_user.is_authenticated else 'Guest' }}</p>
+        </div>
+        {% if current_user.is_authenticated %}
+        <form action="{{ url_for('logout') }}" method="POST" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="text-slate-400 hover:text-red-500 transition-colors p-1" title="Sign out">
+            <i class="fas fa-right-from-bracket text-sm"></i>
+          </button>
+        </form>
+        {% endif %}
       </div>
     </div>
   </aside>
