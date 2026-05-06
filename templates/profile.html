@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Exercise-Tracker – Profile{% endblock %}
+
+{% block content %}
+<main class="md:ml-60 pt-14 md:pt-0 p-6 max-w-3xl">
+
+  <!-- Profile card -->
+  <div class="bg-white rounded-xl border border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-2xl">J</div>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">John Doe</h1>
+        <p class="text-sm text-gray-400">@johndoe · Member since Jan 2026</p>
+        <p class="text-sm text-gray-600 mt-1">Passionate runner and cyclist 🏃🚴</p>
+      </div>
+      <a href="{{ url_for('settings') }}" class="ml-auto text-sm border border-gray-200 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-50">Edit</a>
+    </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-4 gap-3 text-center pt-4 border-t border-gray-100">
+      <div>
+        <p class="text-xl font-bold text-gray-900">87</p>
+        <p class="text-xs text-gray-400">Workouts</p>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-gray-900">214 km</p>
+        <p class="text-xs text-gray-400">Distance</p>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-gray-900">7 🔥</p>
+        <p class="text-xs text-gray-400">Streak</p>
+      </div>
+      <div>
+        <p class="text-xl font-bold text-gray-900">5</p>
+        <p class="text-xs text-gray-400">Goals done</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Friends -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-gray-900">Friends (5)</h2>
+        <button class="text-xs text-indigo-600 hover:underline">Find friends</button>
+      </div>
+      <div class="space-y-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center text-pink-600 font-bold text-sm">J</div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Jessica Chen</p>
+            <p class="text-xs text-gray-400">5 workouts this week 🔥</p>
+          </div>
+          <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold text-sm">M</div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Mike Thompson</p>
+            <p class="text-xs text-gray-400">New PB: 140kg deadlift</p>
+          </div>
+          <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">S</div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Sam Williams</p>
+            <p class="text-xs text-gray-400">Cycling · 22km yesterday</p>
+          </div>
+          <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-bold text-sm">P</div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Priya Sharma</p>
+            <p class="text-xs text-gray-400">12-day yoga streak ✨</p>
+          </div>
+          <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 font-bold text-sm">T</div>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Tom Baker</p>
+            <p class="text-xs text-gray-400">Rest day</p>
+          </div>
+          <div class="w-2 h-2 bg-gray-300 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements -->
+    <div class="bg-white rounded-xl border border-gray-200 p-5">
+      <h2 class="text-base font-semibold text-gray-900 mb-4">Achievements</h2>
+      <div class="space-y-3">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">🏃</span>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">First 5K</p>
+            <p class="text-xs text-gray-400">Ran 5km in a single session</p>
+          </div>
+          <i class="fas fa-check-circle text-green-500"></i>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xl">🔥</span>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Week Warrior</p>
+            <p class="text-xs text-gray-400">7-day workout streak</p>
+          </div>
+          <i class="fas fa-check-circle text-green-500"></i>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xl opacity-40">💯</span>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-400">Century Club</p>
+            <p class="text-xs text-gray-400">Log 100 total workouts</p>
+          </div>
+          <span class="text-xs text-indigo-600 font-medium">87/100</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="text-xl">🏅</span>
+          <div class="flex-1">
+            <p class="text-sm font-medium text-gray-900">Marathon Prep</p>
+            <p class="text-xs text-gray-400">Run 200km total</p>
+          </div>
+          <i class="fas fa-check-circle text-green-500"></i>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+{% endblock %}
