@@ -5,20 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Exercise-Tracker{% endblock %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <style> body { font-family: 'Inter', sans-serif; } </style>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .card { background:#fff; border:1px solid #f1f5f9; border-radius:1rem; box-shadow:0 1px 2px rgba(15,23,42,0.04); }
+  </style>
   {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-50 text-slate-900 antialiased">
 
-  <div id="overlay" class="fixed inset-0 bg-black/40 z-20 hidden" onclick="toggleSidebar()"></div>
+  <div id="overlay" class="fixed inset-0 bg-slate-900/40 z-20 hidden" onclick="toggleSidebar()"></div>
 
-  <aside id="sidebar" class="fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-200 z-30 flex flex-col -translate-x-full md:translate-x-0 transition-transform duration-200">
-    <div class="flex items-center gap-2 h-14 px-5 border-b border-gray-200">
+  <aside id="sidebar" class="fixed top-0 left-0 h-full w-60 bg-white border-r border-slate-200 z-30 flex flex-col -translate-x-full md:translate-x-0 transition-transform duration-200">
+    <div class="flex items-center gap-2 h-16 px-5 border-b border-slate-100">
       <i class="fas fa-dumbbell text-indigo-600"></i>
-      <span class="font-bold text-gray-900">Exercise-Tracker</span>
+      <span class="font-bold text-slate-900">Exercise-Tracker</span>
     </div>
     <nav class="flex-1 p-3 space-y-1">
       {% set nav_items = [
@@ -31,25 +34,29 @@
         ('settings',     url_for('settings'),     'fa-gear',     'Settings'),
       ] %}
       {% for key, href, icon, label in nav_items %}
-        <a href="{{ href }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium {% if active_page == key %}bg-indigo-50 text-indigo-700{% else %}text-gray-600 hover:bg-gray-100{% endif %}">
+        <a href="{{ href }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors {% if active_page == key %}bg-indigo-50 text-indigo-700{% else %}text-slate-600 hover:bg-slate-100{% endif %}">
           <i class="fas {{ icon }} w-4"></i> {{ label }}
         </a>
       {% endfor %}
     </nav>
-    <div class="p-3 border-t border-gray-200">
+    <div class="p-3 border-t border-slate-100">
       <div class="flex items-center gap-3 px-3 py-2">
-        <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">J</div>
-        <span class="text-sm font-medium text-gray-900">John Doe</span>
+        <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm">J</div>
+        <span class="text-sm font-medium text-slate-900">John Doe</span>
       </div>
     </div>
   </aside>
 
-  <div class="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-gray-200 flex items-center gap-3 px-4 z-10">
-    <button onclick="toggleSidebar()"><i class="fas fa-bars text-gray-600"></i></button>
-    <span class="font-bold text-gray-900">Exercise-Tracker</span>
+  <div class="md:hidden fixed top-0 inset-x-0 h-14 bg-white border-b border-slate-200 flex items-center gap-3 px-4 z-10">
+    <button onclick="toggleSidebar()"><i class="fas fa-bars text-slate-600"></i></button>
+    <span class="font-bold text-slate-900">Exercise-Tracker</span>
   </div>
 
-  {% block content %}{% endblock %}
+  <main class="md:ml-60 pt-14 md:pt-0 min-h-screen">
+    <div class="{{ content_max_width|default('max-w-4xl') }} mx-auto px-4 py-6 sm:px-6 md:px-10 md:py-10">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
 
   <script>
     function toggleSidebar() {

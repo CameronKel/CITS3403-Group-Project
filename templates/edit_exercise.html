@@ -1,76 +1,73 @@
 {% extends "base.html" %}
+{% set content_max_width = "max-w-2xl" %}
 
 {% block title %}Exercise-Tracker – Edit Exercise{% endblock %}
 
 {% block content %}
-<main class="md:ml-60 pt-14 md:pt-0 p-6 max-w-xl">
+<!-- Breadcrumb -->
+<p class="text-sm text-slate-400 mb-6">
+  <a href="{{ url_for('history') }}" class="hover:text-indigo-600 transition-colors">History</a> <span class="text-slate-300">/</span> Edit Workout
+</p>
 
-  <!-- Breadcrumb -->
-  <p class="text-sm text-gray-400 mb-5">
-    <a href="{{ url_for('history') }}" class="hover:text-indigo-600">History</a> / Edit Workout
-  </p>
+<div class="mb-8">
+  <h1 class="text-3xl font-bold text-slate-900">Edit Exercise</h1>
+  <p class="text-slate-500 text-sm mt-1">Update your workout details</p>
+</div>
 
-  <div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-900">Edit Exercise</h1>
-    <p class="text-gray-500 text-sm mt-1">Update your workout details</p>
+<form id="editForm" class="card p-6 md:p-8 space-y-6">
+
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="type">Exercise Type *</label>
+    <select id="type" name="type" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      <option>Running</option>
+      <option>Cycling</option>
+      <option>Swimming</option>
+      <option selected>Weight Training</option>
+      <option>Yoga</option>
+      <option>Walking</option>
+      <option>Other</option>
+    </select>
   </div>
 
-  <!-- Pre-filled form (values come from Flask route in real app) -->
-  <form id="editForm" class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="date">Date *</label>
+    <input type="date" id="date" name="date" value="2026-04-24"
+      class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="type">Exercise Type *</label>
-      <select id="type" name="type" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <option>Running</option>
-        <option>Cycling</option>
-        <option>Swimming</option>
-        <option selected>Weight Training</option>
-        <option>Yoga</option>
-        <option>Walking</option>
-        <option>Other</option>
-      </select>
-    </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="duration">Duration (minutes) *</label>
+    <input type="number" id="duration" name="duration" value="60" min="1" max="600"
+      class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="date">Date *</label>
-      <input type="date" id="date" name="date" value="2026-04-24"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-    </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="intensity">Intensity *</label>
+    <select id="intensity" name="intensity" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      <option>Low</option>
+      <option>Medium</option>
+      <option selected>High</option>
+    </select>
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="duration">Duration (minutes) *</label>
-      <input type="number" id="duration" name="duration" value="60" min="1" max="600"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-    </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="distance">Distance in km <span class="text-slate-400 font-normal">(optional)</span></label>
+    <input type="number" id="distance" name="distance" step="0.1" placeholder="e.g. 5.2"
+      class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="intensity">Intensity *</label>
-      <select id="intensity" name="intensity" class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        <option>Low</option>
-        <option>Medium</option>
-        <option selected>High</option>
-      </select>
-    </div>
+  <div>
+    <label class="block text-sm font-medium text-slate-700 mb-1.5" for="notes">Notes <span class="text-slate-400 font-normal">(optional)</span></label>
+    <textarea id="notes" name="notes" rows="3"
+      class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">Felt strong today!</textarea>
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="distance">Distance in km <span class="text-gray-400 font-normal">(optional)</span></label>
-      <input type="number" id="distance" name="distance" step="0.1" placeholder="e.g. 5.2"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-    </div>
+  <div class="flex gap-3 pt-2">
+    <a href="{{ url_for('history') }}" class="flex-1 text-center border border-slate-200 text-slate-700 font-medium py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-colors">Discard</a>
+    <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow-sm transition-colors">Save Changes</button>
+  </div>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-1" for="notes">Notes <span class="text-gray-400 font-normal">(optional)</span></label>
-      <textarea id="notes" name="notes" rows="3"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500">Felt strong today!</textarea>
-    </div>
-
-    <div class="flex gap-3 pt-2">
-      <a href="{{ url_for('history') }}" class="flex-1 text-center border border-gray-200 text-gray-600 font-medium py-2.5 rounded-lg text-sm hover:bg-gray-50">Discard</a>
-      <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm">Save Changes</button>
-    </div>
-
-  </form>
-</main>
+</form>
 {% endblock %}
 
 {% block extra_scripts %}
