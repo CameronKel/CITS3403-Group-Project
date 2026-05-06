@@ -1,120 +1,117 @@
 {% extends "base.html" %}
+{% set content_max_width = "max-w-3xl" %}
 
 {% block title %}Exercise-Tracker – History{% endblock %}
 
 {% block content %}
 <!-- Delete confirm dialog -->
-<dialog id="deleteDialog" class="rounded-xl p-6 shadow-xl border border-gray-200 max-w-sm w-full">
-  <h3 class="text-base font-semibold text-gray-900 mb-2">Delete workout?</h3>
-  <p class="text-sm text-gray-500 mb-5">This cannot be undone.</p>
+<dialog id="deleteDialog" class="rounded-2xl p-6 shadow-xl border border-slate-100 max-w-sm w-full">
+  <h3 class="text-base font-semibold text-slate-900 mb-2">Delete workout?</h3>
+  <p class="text-sm text-slate-500 mb-5">This cannot be undone.</p>
   <div class="flex gap-3">
-    <button onclick="document.getElementById('deleteDialog').close()" class="flex-1 border border-gray-200 text-gray-600 py-2 rounded-lg text-sm">Cancel</button>
-    <button onclick="confirmDelete()" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold">Delete</button>
+    <button onclick="document.getElementById('deleteDialog').close()" class="flex-1 border border-slate-200 text-slate-700 py-2 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+    <button onclick="confirmDelete()" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors">Delete</button>
   </div>
 </dialog>
 
-<main class="md:ml-60 pt-14 md:pt-0 p-6 max-w-3xl">
+<div class="flex items-center justify-between mb-8">
+  <div>
+    <h1 class="text-3xl font-bold text-slate-900">Exercise History</h1>
+    <p class="text-slate-500 text-sm mt-1">All your logged workouts</p>
+  </div>
+  <a href="{{ url_for('log_exercise') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-colors hidden md:block">+ Log Exercise</a>
+</div>
 
-  <div class="flex items-center justify-between mb-6">
+<!-- Filters -->
+<div class="flex flex-col sm:flex-row gap-3 mb-6">
+  <input id="search" type="text" placeholder="Search..." class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+  <select id="typeFilter" class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    <option value="">All types</option>
+    <option>Running</option>
+    <option>Cycling</option>
+    <option>Swimming</option>
+    <option>Weight Training</option>
+    <option>Yoga</option>
+    <option>Walking</option>
+  </select>
+  <select id="intensityFilter" class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+    <option value="">All intensities</option>
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </select>
+</div>
+
+<!-- Workout list -->
+<div class="card divide-y divide-slate-100" id="workoutList">
+
+  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Running" data-intensity="High">
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Exercise History</h1>
-      <p class="text-gray-500 text-sm mt-1">All your logged workouts</p>
+      <p class="text-sm font-semibold text-slate-900">Running</p>
+      <p class="text-xs text-slate-400 mt-0.5">Sat 25 Apr · 45 min · 5.2 km</p>
     </div>
-    <a href="{{ url_for('log_exercise') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg hidden md:block">+ Log Exercise</a>
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
+      <a href="{{ url_for('edit_exercise', id=1) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
+      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
+    </div>
   </div>
 
-  <!-- Filters -->
-  <div class="flex flex-col sm:flex-row gap-3 mb-5">
-    <input id="search" type="text" placeholder="Search..." class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-    <select id="typeFilter" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      <option value="">All types</option>
-      <option>Running</option>
-      <option>Cycling</option>
-      <option>Swimming</option>
-      <option>Weight Training</option>
-      <option>Yoga</option>
-      <option>Walking</option>
-    </select>
-    <select id="intensityFilter" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-      <option value="">All intensities</option>
-      <option>Low</option>
-      <option>Medium</option>
-      <option>High</option>
-    </select>
+  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Weight Training" data-intensity="High">
+    <div>
+      <p class="text-sm font-semibold text-slate-900">Weight Training</p>
+      <p class="text-xs text-slate-400 mt-0.5">Fri 24 Apr · 60 min</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
+      <a href="{{ url_for('edit_exercise', id=2) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
+      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
+    </div>
   </div>
 
-  <!-- Workout list -->
-  <div class="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100" id="workoutList">
-
-    <div class="workout-row flex items-center justify-between px-5 py-4" data-type="Running" data-intensity="High">
-      <div>
-        <p class="text-sm font-semibold text-gray-900">Running</p>
-        <p class="text-xs text-gray-400">Sat 25 Apr · 45 min · 5.2 km</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
-        <a href="{{ url_for('edit_exercise', id=1) }}" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-pen text-sm"></i></a>
-        <button onclick="openDelete(this)" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash text-sm"></i></button>
-      </div>
+  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Cycling" data-intensity="Medium">
+    <div>
+      <p class="text-sm font-semibold text-slate-900">Cycling</p>
+      <p class="text-xs text-slate-400 mt-0.5">Thu 23 Apr · 50 min · 18 km</p>
     </div>
-
-    <div class="workout-row flex items-center justify-between px-5 py-4" data-type="Weight Training" data-intensity="High">
-      <div>
-        <p class="text-sm font-semibold text-gray-900">Weight Training</p>
-        <p class="text-xs text-gray-400">Fri 24 Apr · 60 min</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
-        <a href="{{ url_for('edit_exercise', id=2) }}" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-pen text-sm"></i></a>
-        <button onclick="openDelete(this)" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash text-sm"></i></button>
-      </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">Medium</span>
+      <a href="{{ url_for('edit_exercise', id=3) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
+      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
     </div>
-
-    <div class="workout-row flex items-center justify-between px-5 py-4" data-type="Cycling" data-intensity="Medium">
-      <div>
-        <p class="text-sm font-semibold text-gray-900">Cycling</p>
-        <p class="text-xs text-gray-400">Thu 23 Apr · 50 min · 18 km</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded-full">Medium</span>
-        <a href="{{ url_for('edit_exercise', id=3) }}" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-pen text-sm"></i></a>
-        <button onclick="openDelete(this)" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash text-sm"></i></button>
-      </div>
-    </div>
-
-    <div class="workout-row flex items-center justify-between px-5 py-4" data-type="Swimming" data-intensity="Low">
-      <div>
-        <p class="text-sm font-semibold text-gray-900">Swimming</p>
-        <p class="text-xs text-gray-400">Wed 22 Apr · 30 min · 1.5 km</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Low</span>
-        <a href="{{ url_for('edit_exercise', id=4) }}" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-pen text-sm"></i></a>
-        <button onclick="openDelete(this)" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash text-sm"></i></button>
-      </div>
-    </div>
-
-    <div class="workout-row flex items-center justify-between px-5 py-4" data-type="Yoga" data-intensity="Low">
-      <div>
-        <p class="text-sm font-semibold text-gray-900">Yoga</p>
-        <p class="text-xs text-gray-400">Sun 20 Apr · 40 min</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="text-xs bg-green-50 text-green-600 px-2 py-0.5 rounded-full">Low</span>
-        <a href="{{ url_for('edit_exercise', id=5) }}" class="text-gray-400 hover:text-indigo-600"><i class="fas fa-pen text-sm"></i></a>
-        <button onclick="openDelete(this)" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash text-sm"></i></button>
-      </div>
-    </div>
-
   </div>
 
-  <!-- Empty state -->
-  <div id="emptyState" class="hidden text-center py-12 text-gray-400">
-    <i class="fas fa-search text-3xl mb-3"></i>
-    <p class="text-sm">No workouts match your filters.</p>
+  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Swimming" data-intensity="Low">
+    <div>
+      <p class="text-sm font-semibold text-slate-900">Swimming</p>
+      <p class="text-xs text-slate-400 mt-0.5">Wed 22 Apr · 30 min · 1.5 km</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">Low</span>
+      <a href="{{ url_for('edit_exercise', id=4) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
+      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
+    </div>
   </div>
 
-</main>
+  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Yoga" data-intensity="Low">
+    <div>
+      <p class="text-sm font-semibold text-slate-900">Yoga</p>
+      <p class="text-xs text-slate-400 mt-0.5">Sun 20 Apr · 40 min</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">Low</span>
+      <a href="{{ url_for('edit_exercise', id=5) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
+      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Empty state -->
+<div id="emptyState" class="hidden text-center py-12 text-slate-400">
+  <i class="fas fa-search text-3xl mb-3"></i>
+  <p class="text-sm">No workouts match your filters.</p>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
