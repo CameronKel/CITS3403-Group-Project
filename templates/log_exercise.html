@@ -14,7 +14,8 @@
   ✅ Workout saved successfully!
 </div>
 
-<form id="logForm" novalidate class="card p-6 md:p-8 space-y-6">
+<form id="logForm" novalidate action="{{ url_for('log_exercise') }}" method="POST" class="card p-6 md:p-8 space-y-6">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
   <div>
     <label class="block text-sm font-medium text-slate-700 mb-1.5" for="type">Exercise Type *</label>
@@ -79,7 +80,6 @@
   document.getElementById('date').valueAsDate = new Date();
 
   document.getElementById('logForm').addEventListener('submit', function(e) {
-    e.preventDefault();
     let valid = true;
 
     if (!document.getElementById('type').value) {
@@ -104,11 +104,8 @@
       document.getElementById('intErr').classList.add('hidden');
     }
 
-    if (valid) {
-      this.reset();
-      document.getElementById('date').valueAsDate = new Date();
-      document.getElementById('successMsg').classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (!valid) {
+      e.preventDefault();
     }
   });
 </script>

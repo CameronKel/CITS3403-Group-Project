@@ -12,7 +12,8 @@ from flask_login import (
 from flask_wtf.csrf import CSRFProtect
 
 from forms import LoginForm, SignupForm
-from models import User, db
+from datetime import date
+from models import Exercise, Goal, User, db
 
 load_dotenv()
 
@@ -84,17 +85,44 @@ def dashboard():
     return render_template("dashboard.html", active_page="dashboard")
 
 
-@app.route("/log")
+@app.route("/log", methods=["GET", "POST"])
 @login_required
 def log_exercise():
+    if request.method == "POST":
+        exercise = Exercise(
+            user_id   = current_user.id,
+            type      = request.form["type"],
+            date      = date.fromisoformat(request.form["date"]),
+            duration  = int(request.form["duration"]),
+            intensity = request.form["intensity"],
+            distance  = float(request.form["distance"]) if request.form.get("distance") else None,
+            notes     = request.form.get("notes") or None,
+        )
+        db.session.add(exercise)
+        db.session.commit()
+        flash("Workout saved!", "success")
+        return redirect(url_for("history"))
     return render_template("log_exercise.html", active_page="log_exercise")
 
 
 @app.route("/history")
 @login_required
 def history():
-    return render_template("history.html", active_page="history")
+    exercises = (Exercise.query
+                 .filter_by(user_id=current_user.id)
+                 .order_by(Exercise.date.desc())
+                 .all())
+    return render_template("history.html", active_page="history", exercises=exercises)
 
+@app.route("/history/<int:id>/delete", methods=["POST"])
+@login_required
+def delete_exercise(id):
+    exercise = db.session.get(Exercise, id)
+    if exercise and exercise.user_id == current_user.id:
+        db.session.delete(exercise)
+        db.session.commit()
+        flash("Workout deleted.", "success")
+    return redirect(url_for("history"))
 
 @app.route("/history/<int:id>/edit")
 @login_required
