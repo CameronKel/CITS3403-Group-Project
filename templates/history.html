@@ -8,10 +8,15 @@
 <dialog id="deleteDialog" class="rounded-2xl p-6 shadow-xl border border-slate-100 max-w-sm w-full">
   <h3 class="text-base font-semibold text-slate-900 mb-2">Delete workout?</h3>
   <p class="text-sm text-slate-500 mb-5">This cannot be undone.</p>
-  <div class="flex gap-3">
-    <button onclick="document.getElementById('deleteDialog').close()" class="flex-1 border border-slate-200 text-slate-700 py-2 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
-    <button onclick="confirmDelete()" class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors">Delete</button>
-  </div>
+  <form id="deleteForm" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="flex gap-3">
+      <button type="button" onclick="document.getElementById('deleteDialog').close()"
+        class="flex-1 border border-slate-200 text-slate-700 py-2 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+      <button type="submit"
+        class="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors">Delete</button>
+    </div>
+  </form>
 </dialog>
 
 <div class="flex items-center justify-between mb-8">
@@ -42,109 +47,65 @@
   </select>
 </div>
 
-<!-- Workout list -->
+{% set badge = {
+  'Low':    'bg-emerald-50 text-emerald-600',
+  'Medium': 'bg-amber-50 text-amber-600',
+  'High':   'bg-red-50 text-red-600'
+} %}
+
 <div class="card divide-y divide-slate-100" id="workoutList">
-
-  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Running" data-intensity="High">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Running</p>
-      <p class="text-xs text-slate-400 mt-0.5">Sat 25 Apr · 45 min · 5.2 km</p>
+  {% if exercises %}
+    {% for exercise in exercises %}
+    <div class="workout-row flex items-center justify-between px-6 py-4"
+         data-type="{{ exercise.type }}" data-intensity="{{ exercise.intensity }}">
+      <div>
+        <p class="text-sm font-semibold text-slate-900">{{ exercise.type }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">
+          {{ exercise.date.strftime('%a %d %b') }} · {{ exercise.duration }} min
+          {% if exercise.distance %} · {{ exercise.distance }} km{% endif %}
+        </p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs {{ badge[exercise.intensity] }} px-2 py-0.5 rounded-full">{{ exercise.intensity }}</span>
+        <a href="{{ url_for('edit_exercise', id=exercise.id) }}" class="text-slate-400 hover:text-indigo-600 transition-colors">
+          <i class="fas fa-pen text-sm"></i>
+        </a>
+        <button onclick="openDelete({{ exercise.id }})" class="text-slate-400 hover:text-red-500 transition-colors">
+          <i class="fas fa-trash text-sm"></i>
+        </button>
+      </div>
     </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
-      <a href="{{ url_for('edit_exercise', id=1) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
-      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-12 text-slate-400">
+      <i class="fas fa-dumbbell text-3xl mb-3"></i>
+      <p class="text-sm">No workouts logged yet.
+        <a href="{{ url_for('log_exercise') }}" class="text-indigo-600 hover:underline">Log your first one!</a>
+      </p>
     </div>
-  </div>
-
-  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Weight Training" data-intensity="High">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Weight Training</p>
-      <p class="text-xs text-slate-400 mt-0.5">Fri 24 Apr · 60 min</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full">High</span>
-      <a href="{{ url_for('edit_exercise', id=2) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
-      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
-    </div>
-  </div>
-
-  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Cycling" data-intensity="Medium">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Cycling</p>
-      <p class="text-xs text-slate-400 mt-0.5">Thu 23 Apr · 50 min · 18 km</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">Medium</span>
-      <a href="{{ url_for('edit_exercise', id=3) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
-      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
-    </div>
-  </div>
-
-  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Swimming" data-intensity="Low">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Swimming</p>
-      <p class="text-xs text-slate-400 mt-0.5">Wed 22 Apr · 30 min · 1.5 km</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">Low</span>
-      <a href="{{ url_for('edit_exercise', id=4) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
-      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
-    </div>
-  </div>
-
-  <div class="workout-row flex items-center justify-between px-6 py-4" data-type="Yoga" data-intensity="Low">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Yoga</p>
-      <p class="text-xs text-slate-400 mt-0.5">Sun 20 Apr · 40 min</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full">Low</span>
-      <a href="{{ url_for('edit_exercise', id=5) }}" class="text-slate-400 hover:text-indigo-600 transition-colors"><i class="fas fa-pen text-sm"></i></a>
-      <button onclick="openDelete(this)" class="text-slate-400 hover:text-red-500 transition-colors"><i class="fas fa-trash text-sm"></i></button>
-    </div>
-  </div>
-
-</div>
-
-<!-- Empty state -->
-<div id="emptyState" class="hidden text-center py-12 text-slate-400">
-  <i class="fas fa-search text-3xl mb-3"></i>
-  <p class="text-sm">No workouts match your filters.</p>
+  {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
-<script>
-  let rowToDelete = null;
-
-  function openDelete(btn) {
-    rowToDelete = btn.closest('.workout-row');
+  <script>
+    function openDelete(id) {
+    document.getElementById('deleteForm').action = `/history/${id}/delete`;
     document.getElementById('deleteDialog').showModal();
   }
-
-  function confirmDelete() {
-    if (rowToDelete) rowToDelete.remove();
-    document.getElementById('deleteDialog').close();
-    rowToDelete = null;
-  }
-
-  $('#search, #typeFilter, #intensityFilter').on('input change', function() {
+  
+  $('#search, #typeFilter, #intensityFilter').on('input change', function () {
     const search = $('#search').val().toLowerCase();
     const type = $('#typeFilter').val();
     const intensity = $('#intensityFilter').val();
-    let count = 0;
-
-    $('.workout-row').each(function() {
+  
+    $('.workout-row').each(function () {
       const match =
         (!search || $(this).text().toLowerCase().includes(search)) &&
         (!type || $(this).data('type') === type) &&
         (!intensity || $(this).data('intensity') === intensity);
       $(this).toggle(match);
-      if (match) count++;
     });
-
-    $('#emptyState').toggle(count === 0);
   });
-</script>
+  </script>
 {% endblock %}
