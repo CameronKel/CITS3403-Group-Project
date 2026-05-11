@@ -253,6 +253,45 @@ def settings():
     return render_template("settings.html", active_page="settings", s=s)
 
 
+@app.route("/api/stats/weekly")
+@login_required
+def api_weekly_stats():
+    from datetime import timedelta
+    today      = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    labels, data = [], []
+    for i in range(7):
+        d     = week_start + timedelta(days=i)
+        total = db.session.query(db.func.sum(Exercise.duration)) \
+                    .filter_by(user_id=current_user.id, date=d).scalar() or 0
+        labels.append(d.strftime("%a"))
+        data.append(int(total))
+    return jsonify({"labels": labels, "data": data})
+
+
+@app.route("/api/users/search")
+@login_required
+def search_users():
+    q = request.args.get("q", "").strip()
+    if len(q) < 2:
+        return jsonify([])
+    users = User.query.filter(
+        User.username.ilike(f"%{q}%"),
+        User.id != current_user.id
+    ).limit(10).all()
+    return jsonify([{"id": u.id, "username": u.username} for u in users])
+
+
+@app.route("/api/friends/add/<int:user_id>", methods=["POST"])
+@login_required
+def add_friend(user_id):
+    user = db.session.get(User, user_id)
+    if user and user not in current_user.friends:
+        current_user.friends.append(user)
+        db.session.commit()
+    return jsonify({"status": "ok"})
+
+
 def init_db() -> None:
     with app.app_context():
         db.create_all()
