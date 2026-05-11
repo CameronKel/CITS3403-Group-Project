@@ -84,7 +84,32 @@ def logout():
 @app.route("/")
 @login_required
 def dashboard():
-    return render_template("dashboard.html", active_page="dashboard")
+    from datetime import timedelta
+    today      = date.today()
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+
+    week_exercises  = Exercise.query.filter(
+        Exercise.user_id == current_user.id,
+        Exercise.date >= week_start
+    ).all()
+    month_exercises = Exercise.query.filter(
+        Exercise.user_id == current_user.id,
+        Exercise.date >= month_start
+    ).all()
+
+    week_count   = len(week_exercises)
+    week_minutes = sum(e.duration for e in week_exercises)
+    month_minutes = sum(e.duration for e in month_exercises)
+    active_goal  = Goal.query.filter_by(user_id=current_user.id, completed=False).first()
+    recent       = (Exercise.query
+                    .filter_by(user_id=current_user.id)
+                    .order_by(Exercise.date.desc())
+                    .limit(5).all())
+
+    return render_template("dashboard.html", active_page="dashboard",
+        week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
+        active_goal=active_goal, recent=recent)
 
 
 @app.route("/log", methods=["GET", "POST"])
@@ -193,10 +218,27 @@ def profile():
     return render_template("profile.html", active_page="profile")
 
 
-@app.route("/settings")
+@app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
-    return render_template("settings.html", active_page="settings")
+    s = UserSettings.query.filter_by(user_id=current_user.id).first()
+    if not s:
+        s = UserSettings(user_id=current_user.id)
+        db.session.add(s)
+        db.session.commit()
+    if request.method == "POST":
+        s.workout_reminders = "workout_reminders" in request.form
+        s.goal_alerts       = "goal_alerts"       in request.form
+        s.friend_activity   = "friend_activity"   in request.form
+        s.streak_warnings   = "streak_warnings"   in request.form
+        s.weekly_summary    = "weekly_summary"     in request.form
+        s.training_days     = ",".join(request.form.getlist("training_days"))
+        s.reminder_time     = request.form.get("reminder_time", "07:30")
+        s.privacy           = request.form.get("privacy", "public")
+        db.session.commit()
+        flash("Settings saved!", "success")
+        return redirect(url_for("settings"))
+    return render_template("settings.html", active_page="settings", s=s)
 
 
 def init_db() -> None:
