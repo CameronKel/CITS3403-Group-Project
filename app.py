@@ -209,13 +209,25 @@ def share_goal(id):
 @app.route("/social")
 @login_required
 def social():
-    return render_template("social.html", active_page="social")
+    friend_ids = [f.id for f in current_user.friends]
+    posts = (FeedPost.query
+             .filter(FeedPost.user_id.in_(friend_ids + [current_user.id]))
+             .order_by(FeedPost.created_at.desc())
+             .limit(20).all())
+    return render_template("social.html", active_page="social", posts=posts)
 
 
 @app.route("/profile")
 @login_required
 def profile():
-    return render_template("profile.html", active_page="profile")
+    total_workouts  = Exercise.query.filter_by(user_id=current_user.id).count()
+    total_distance  = db.session.query(db.func.sum(Exercise.distance)) \
+                        .filter_by(user_id=current_user.id).scalar() or 0
+    completed_goals = Goal.query.filter_by(user_id=current_user.id, completed=True).count()
+    return render_template("profile.html", active_page="profile",
+        total_workouts=total_workouts,
+        total_distance=round(total_distance, 1),
+        completed_goals=completed_goals)
 
 
 @app.route("/settings", methods=["GET", "POST"])
