@@ -1,7 +1,8 @@
 import os
 
 from dotenv import load_dotenv
-from flask import Flask, flash, redirect, render_template, request, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
+from flask_migrate import Migrate
 from flask_login import (
     LoginManager,
     current_user,
@@ -13,7 +14,7 @@ from flask_wtf.csrf import CSRFProtect
 
 from forms import LoginForm, SignupForm
 from datetime import date
-from models import Exercise, Goal, User, db
+from models import Exercise, FeedPost, Goal, User, UserSettings, db
 
 load_dotenv()
 
@@ -23,6 +24,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:/
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+migrate = Migrate(app, db)
 csrf = CSRFProtect(app)
 
 login_manager = LoginManager(app)
@@ -124,17 +126,60 @@ def delete_exercise(id):
         flash("Workout deleted.", "success")
     return redirect(url_for("history"))
 
-@app.route("/history/<int:id>/edit")
+@app.route("/history/<int:id>/edit", methods=["GET", "POST"])
 @login_required
 def edit_exercise(id):
-    return render_template("edit_exercise.html", active_page="history", exercise_id=id)
+    exercise = db.session.get(Exercise, id)
+    if not exercise or exercise.user_id != current_user.id:
+        flash("Workout not found.", "error")
+        return redirect(url_for("history"))
+    if request.method == "POST":
+        exercise.type      = request.form["type"]
+        exercise.date      = date.fromisoformat(request.form["date"])
+        exercise.duration  = int(request.form["duration"])
+        exercise.intensity = request.form["intensity"]
+        exercise.distance  = float(request.form["distance"]) if request.form.get("distance") else None
+        exercise.notes     = request.form.get("notes") or None
+        db.session.commit()
+        flash("Workout updated!", "success")
+        return redirect(url_for("history"))
+    return render_template("edit_exercise.html", active_page="history", exercise=exercise)
 
 
-@app.route("/goals")
+@app.route("/goals", methods=["GET", "POST"])
 @login_required
 def goals():
-    return render_template("goals.html", active_page="goals")
+    if request.method == "POST":
+        goal = Goal(
+            user_id      = current_user.id,
+            goal_type    = request.form["goal_type"],
+            target_value = float(request.form["target_value"]),
+            deadline     = date.fromisoformat(request.form["deadline"]),
+        )
+        db.session.add(goal)
+        db.session.commit()
+        return jsonify({"status": "ok", "id": goal.id})   # AJAX response
+    active_goals    = Goal.query.filter_by(user_id=current_user.id, completed=False).all()
+    completed_goals = Goal.query.filter_by(user_id=current_user.id, completed=True).all()
+    return render_template("goals.html", active_page="goals",
+                           active_goals=active_goals, completed_goals=completed_goals)
 
+
+@app.route("/goals/<int:id>/share", methods=["POST"])
+@login_required
+def share_goal(id):
+    goal = db.session.get(Goal, id)
+    if not goal or goal.user_id != current_user.id:
+        return jsonify({"error": "Not found"}), 404
+    post = FeedPost(
+        user_id   = current_user.id,
+        post_type = "goal",
+        content   = f"Completed goal: {goal.goal_type} — target {goal.target_value}",
+        goal_id   = goal.id,
+    )
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({"status": "shared"})
 
 @app.route("/social")
 @login_required
