@@ -49,3 +49,12 @@ Open http://127.0.0.1:5000. The SQLite database is auto-created at `instance/app
 - Passwords are stored as salted hashes (werkzeug `generate_password_hash`).
 - All forms include CSRF tokens (Flask-WTF). Logout uses a POST form with the same protection.
 - All app pages require login; unauthenticated users are redirected to `/login`.
+
+## Tests
+
+Unit tests live in `tests/` and use pytest. Each test runs against a throwaway SQLite file with CSRF disabled — the dev database is never touched.
+
+```bash
+pip install -r requirements.txt
+python -m pytest
+```

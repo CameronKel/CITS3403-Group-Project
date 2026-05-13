@@ -5,3 +5,4 @@ Flask-WTF>=1.2
 Flask-Migrate>=4.0
 python-dotenv>=1.0
 email-validator>=2.1
+pytest>=8.0
