@@ -9,120 +9,65 @@
   <p class="text-slate-500 text-sm mt-1">See what your friends are up to</p>
 </div>
 
+<div class="card p-4 mb-6">
+  <input id="friendSearch" type="text" placeholder="Find friends by username..."
+    class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+  <div id="friendResults" class="mt-2 space-y-2"></div>
+</div>
+
 <div class="space-y-4">
-
-  <!-- Post: Achievement -->
+  {% for post in posts %}
   <div class="card p-6">
     <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center font-bold text-pink-600 text-sm">J</div>
-      <div>
-        <p class="text-sm font-semibold text-slate-900">Jessica Chen</p>
-        <p class="text-xs text-slate-400">2 hours ago</p>
+      <div class="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center font-bold text-indigo-600 text-sm">
+        {{ post.user.username[0]|upper }}
       </div>
-      <span class="ml-auto text-xs bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full">🏆 Achievement</span>
-    </div>
-    <div class="bg-indigo-50 rounded-xl p-5 text-center mb-4">
-      <p class="text-3xl mb-1">🏆</p>
-      <p class="text-sm font-bold text-indigo-800">Goal Completed!</p>
-      <p class="text-xs text-indigo-600 mt-1">Run 30km in April · Finished with 33.1km</p>
-    </div>
-    <div class="flex items-center gap-5">
-      <button class="like-btn flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-500 transition-colors" data-count="12">
-        <i class="far fa-heart"></i> <span>12</span>
-      </button>
-      <button class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors">
-        <i class="far fa-comment"></i> <span>3</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Post: Workout -->
-  <div class="card p-6">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center font-bold text-purple-600 text-sm">P</div>
       <div>
-        <p class="text-sm font-semibold text-slate-900">Priya Sharma</p>
-        <p class="text-xs text-slate-400">5 hours ago</p>
+        <p class="text-sm font-semibold text-slate-900">{{ post.user.username }}</p>
+        <p class="text-xs text-slate-400">{{ post.created_at.strftime('%d %b · %H:%M') }}</p>
       </div>
-      <span class="ml-auto text-xs bg-pink-50 text-pink-600 border border-pink-100 px-2 py-0.5 rounded-full">🧘 Yoga</span>
+      <span class="ml-auto text-xs bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full">
+        {% if post.post_type == 'goal' %}🏆 Goal{% else %}💪 Workout{% endif %}
+      </span>
     </div>
-    <p class="text-sm text-slate-700 mb-4">Morning yoga session done ☀️ 12-day streak and going strong!</p>
-    <div class="flex gap-3 text-center bg-slate-50 rounded-xl p-4 mb-4 text-sm">
-      <div class="flex-1"><p class="text-xs text-slate-400">Duration</p><p class="font-semibold text-slate-900">45 min</p></div>
-      <div class="flex-1 border-x border-slate-200"><p class="text-xs text-slate-400">Intensity</p><p class="font-semibold text-slate-900">Low</p></div>
-      <div class="flex-1"><p class="text-xs text-slate-400">Streak</p><p class="font-semibold text-slate-900">12 🔥</p></div>
-    </div>
-    <div class="flex items-center gap-5">
-      <button class="like-btn flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-500 transition-colors" data-count="8">
-        <i class="far fa-heart"></i> <span>8</span>
-      </button>
-      <button class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors">
-        <i class="far fa-comment"></i> <span>1</span>
-      </button>
-    </div>
+    <p class="text-sm text-slate-700">{{ post.content }}</p>
   </div>
-
-  <!-- Post: Workout -->
-  <div class="card p-6">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 text-sm">S</div>
-      <div>
-        <p class="text-sm font-semibold text-slate-900">Sam Williams</p>
-        <p class="text-xs text-slate-400">Yesterday</p>
-      </div>
-      <span class="ml-auto text-xs bg-emerald-50 text-emerald-600 border border-emerald-100 px-2 py-0.5 rounded-full">🚴 Cycling</span>
-    </div>
-    <p class="text-sm text-slate-700 mb-4">Evening ride through the park. Beautiful sunset 🌅</p>
-    <div class="flex gap-3 text-center bg-slate-50 rounded-xl p-4 mb-4 text-sm">
-      <div class="flex-1"><p class="text-xs text-slate-400">Distance</p><p class="font-semibold text-slate-900">22 km</p></div>
-      <div class="flex-1 border-x border-slate-200"><p class="text-xs text-slate-400">Duration</p><p class="font-semibold text-slate-900">55 min</p></div>
-      <div class="flex-1"><p class="text-xs text-slate-400">Calories</p><p class="font-semibold text-slate-900">420</p></div>
-    </div>
-    <div class="flex items-center gap-5">
-      <button class="like-btn flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-500 transition-colors" data-count="15">
-        <i class="far fa-heart"></i> <span>15</span>
-      </button>
-      <button class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors">
-        <i class="far fa-comment"></i> <span>5</span>
-      </button>
-    </div>
+  {% else %}
+  <div class="card p-12 text-center text-slate-400">
+    <i class="fas fa-users text-3xl mb-3"></i>
+    <p class="text-sm">No posts yet. Search for friends above to see their activity!</p>
   </div>
-
-  <!-- Post: PB -->
-  <div class="card p-6">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center font-bold text-emerald-600 text-sm">M</div>
-      <div>
-        <p class="text-sm font-semibold text-slate-900">Mike Thompson</p>
-        <p class="text-xs text-slate-400">Yesterday</p>
-      </div>
-      <span class="ml-auto text-xs bg-purple-50 text-purple-600 border border-purple-100 px-2 py-0.5 rounded-full">🏋️ Weights</span>
-    </div>
-    <p class="text-sm text-slate-700 mb-4">New personal best! Deadlift at 140kg 💪 Months of consistent training paying off.</p>
-    <div class="flex items-center gap-5">
-      <button class="like-btn flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-500 transition-colors" data-count="23">
-        <i class="far fa-heart"></i> <span>23</span>
-      </button>
-      <button class="flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors">
-        <i class="far fa-comment"></i> <span>7</span>
-      </button>
-    </div>
-  </div>
-
+  {% endfor %}
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  document.querySelectorAll('.like-btn').forEach(btn => {
-    let liked = false;
-    btn.addEventListener('click', function() {
-      liked = !liked;
-      const count = parseInt(this.dataset.count) + (liked ? 1 : -1);
-      this.dataset.count = count;
-      this.querySelector('span').textContent = count;
-      this.querySelector('i').className = liked ? 'fas fa-heart text-red-500' : 'far fa-heart';
+    $('#friendSearch').on('input', function() {
+    const q = $(this).val();
+    if (q.length < 2) { $('#friendResults').empty(); return; }
+    $.getJSON(`/api/users/search?q=${encodeURIComponent(q)}`, function(users) {
+      if (!users.length) {
+        $('#friendResults').html('<p class="text-xs text-slate-400 px-3">No users found.</p>');
+        return;
+      }
+      const html = users.map(u =>
+        `<div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
+           <span class="text-sm font-medium text-slate-900">${u.username}</span>
+           <button onclick="addFriend(${u.id})"
+             class="text-xs text-indigo-600 border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50">Add</button>
+         </div>`
+      ).join('');
+      $('#friendResults').html(html);
     });
   });
+
+  function addFriend(id) {
+    $.post(`/api/friends/add/${id}`, { csrf_token: '{{ csrf_token() }}' }, function() {
+      alert('Friend added! Their posts will appear in your feed.');
+      $('#friendSearch').val('');
+      $('#friendResults').empty();
+    });
+  }
 </script>
 {% endblock %}
