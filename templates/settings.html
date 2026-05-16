@@ -13,6 +13,9 @@
   ✅ Settings saved!
 </div>
 
+<form method="POST" action="{{ url_for('settings') }}">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
 <!-- Profile -->
 <div class="card p-6 mb-6">
   <h2 class="text-base font-semibold text-slate-900 mb-5">Profile</h2>
@@ -47,35 +50,35 @@
         <p class="text-sm font-medium text-slate-900">Workout reminders</p>
         <p class="text-xs text-slate-400">Get reminded on your training days</p>
       </div>
-      <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
+      <input type="checkbox" name="workout_reminders" {% if s.workout_reminders %}checked{% endif %} class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
     </label>
     <label class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm font-medium text-slate-900">Goal progress alerts</p>
         <p class="text-xs text-slate-400">Notify me when I'm close to a goal</p>
       </div>
-      <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
+      <input type="checkbox" name="goal_alerts" {% if s.goal_alerts %}checked{% endif %} class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
     </label>
     <label class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm font-medium text-slate-900">Friend activity</p>
         <p class="text-xs text-slate-400">When friends log workouts or share achievements</p>
       </div>
-      <input type="checkbox" class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
+      <input type="checkbox" name="friend_activity" {% if s.friend_activity %}checked{% endif %} class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
     </label>
     <label class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm font-medium text-slate-900">Streak warnings</p>
         <p class="text-xs text-slate-400">Alert me if my streak is about to break</p>
       </div>
-      <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
+      <input type="checkbox" name="streak_warnings" {% if s.streak_warnings %}checked{% endif %} class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
     </label>
     <label class="flex items-center justify-between gap-4">
       <div>
         <p class="text-sm font-medium text-slate-900">Weekly summary</p>
         <p class="text-xs text-slate-400">Receive a weekly report every Sunday</p>
       </div>
-      <input type="checkbox" checked class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
+      <input type="checkbox" name="weekly_summary" {% if s.weekly_summary %}checked{% endif %} class="w-4 h-4 accent-indigo-600 cursor-pointer shrink-0" />
     </label>
   </div>
 </div>
@@ -87,18 +90,18 @@
   <div class="mb-5">
     <p class="text-sm font-medium text-slate-700 mb-2.5">Training Days</p>
     <div class="flex flex-wrap gap-2">
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Mon</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Tue</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Wed</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Thu</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Fri</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" checked class="accent-indigo-600" /> Sat</label>
-      <label class="flex items-center gap-1.5 text-sm"><input type="checkbox" class="accent-indigo-600" /> Sun</label>
+      {% set active_days = s.training_days.split(',') %}
+      {% for day in ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+      <label class="flex items-center gap-1.5 text-sm">
+        <input type="checkbox" name="training_days" value="{{ day }}"
+          {% if day in active_days %}checked{% endif %} class="accent-indigo-600" /> {{ day }}
+      </label>
+      {% endfor %}
     </div>
   </div>
   <div>
     <label class="block text-sm font-medium text-slate-700 mb-1.5">Reminder Time</label>
-    <input type="time" value="07:30" class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+    <input type="time" name="reminder_time" value="{{ s.reminder_time }}" class="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
   </div>
 </div>
 
@@ -107,21 +110,21 @@
   <h2 class="text-base font-semibold text-slate-900 mb-5">Privacy</h2>
   <div class="space-y-3">
     <label class="flex items-center gap-2 text-sm cursor-pointer">
-      <input type="radio" name="privacy" value="public" checked class="accent-indigo-600" />
+      <input type="radio" name="privacy" value="public"  {% if s.privacy == 'public' %}checked{% endif %} class="accent-indigo-600" />
       <div>
         <span class="font-medium text-slate-900">Public</span>
         <span class="text-slate-400 ml-1">– anyone can see your workouts</span>
       </div>
     </label>
     <label class="flex items-center gap-2 text-sm cursor-pointer">
-      <input type="radio" name="privacy" value="friends" class="accent-indigo-600" />
+      <input type="radio" name="privacy" value="friends" {% if s.privacy == 'friends' %}checked{% endif %} class="accent-indigo-600" />
       <div>
         <span class="font-medium text-slate-900">Friends Only</span>
         <span class="text-slate-400 ml-1">– only friends can see your activity</span>
       </div>
     </label>
     <label class="flex items-center gap-2 text-sm cursor-pointer">
-      <input type="radio" name="privacy" value="private" class="accent-indigo-600" />
+      <input type="radio" name="privacy" value="private" {% if s.privacy == 'private' %}checked{% endif %} class="accent-indigo-600" />
       <div>
         <span class="font-medium text-slate-900">Private</span>
         <span class="text-slate-400 ml-1">– only you can see your data</span>
@@ -148,17 +151,7 @@
 <!-- Save -->
 <div class="flex gap-3">
   <a href="{{ url_for('dashboard') }}" class="flex-1 text-center border border-slate-200 text-slate-700 font-medium py-2.5 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</a>
-  <button onclick="saveSettings()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow-sm transition-colors">Save Settings</button>
+  <button type="submit" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg text-sm shadow-sm transition-colors">Save Settings</button>
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-  function saveSettings() {
-    const msg = document.getElementById('saveSuccess');
-    msg.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => msg.classList.add('hidden'), 3000);
-  }
-</script>
+</form>
 {% endblock %}
