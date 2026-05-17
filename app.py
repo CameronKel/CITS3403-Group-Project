@@ -371,11 +371,19 @@ def settings():
                 func.lower(User.username) == new_username.lower(),
                 User.id != current_user.id,
             ).first()
-            if not taken:
-                current_user.username = new_username
+            if taken:
+                flash(f"Username '{new_username}' is already taken.", "error")
+                return redirect(url_for("settings"))
+            current_user.username = new_username
         if new_email and new_email != current_user.email:
-            if not User.query.filter_by(email=new_email).first():
-                current_user.email = new_email
+            taken = User.query.filter(
+                User.email == new_email,
+                User.id != current_user.id,
+            ).first()
+            if taken:
+                flash(f"Email '{new_email}' is already in use.", "error")
+                return redirect(url_for("settings"))
+            current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
         current_user.bio        = request.form.get("bio", "").strip() or None
