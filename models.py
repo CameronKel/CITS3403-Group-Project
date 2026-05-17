@@ -45,6 +45,24 @@ class User(UserMixin, db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
+    def compute_streak(self, today=None) -> int:
+        """Consecutive days ending today on which the user logged at least one
+        exercise. One DB round-trip regardless of streak length."""
+        from datetime import timedelta
+        today = today or date.today()
+        rows = (db.session.query(Exercise.date)
+                .filter(Exercise.user_id == self.id,
+                        Exercise.date <= today,
+                        Exercise.date >= today - timedelta(days=365))
+                .distinct().all())
+        days = {r[0] for r in rows}
+        streak = 0
+        d = today
+        while d in days:
+            streak += 1
+            d -= timedelta(days=1)
+        return streak
+
     def __repr__(self) -> str:
         return f"<User {self.username}>"
 

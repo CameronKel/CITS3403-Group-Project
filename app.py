@@ -111,22 +111,7 @@ def dashboard():
                     .order_by(Exercise.date.desc())
                     .limit(5).all())
 
-    # Calculate current streak
-    from datetime import timedelta
-    streak = 0
-    check_date = today
-    while True:
-        has_exercise = Exercise.query.filter(
-            Exercise.user_id == current_user.id,
-            Exercise.date == check_date
-        ).first()
-        if has_exercise:
-            streak += 1
-            check_date -= timedelta(days=1)
-        else:
-            break
-    current_user.streak = streak
-    db.session.commit()
+    streak = current_user.compute_streak(today)
 
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
@@ -317,11 +302,13 @@ def profile():
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
                           if g.is_completed_now)
     achievements_status = status_for_user(current_user.id)
+    streak = current_user.compute_streak()
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
         total_distance=round(total_distance, 1),
         completed_goals=completed_goals,
-        achievements_status=achievements_status)
+        achievements_status=achievements_status,
+        streak=streak)
 
 
 @app.route("/users/<username>")
