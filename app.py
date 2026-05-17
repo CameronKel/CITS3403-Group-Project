@@ -101,7 +101,7 @@ def dashboard():
     week_count   = len(week_exercises)
     week_minutes = sum(e.duration for e in week_exercises)
     month_minutes = sum(e.duration for e in month_exercises)
-    active_goal  = Goal.query.filter_by(user_id=current_user.id, completed=False).first()
+    active_goals  = Goal.query.filter_by(user_id=current_user.id, completed=False).all()
     recent       = (Exercise.query
                     .filter_by(user_id=current_user.id)
                     .order_by(Exercise.date.desc())
@@ -109,7 +109,7 @@ def dashboard():
 
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
-        active_goal=active_goal, recent=recent, now=datetime.now())
+        active_goals=active_goals, recent=recent, now=datetime.now())
 
 
 @app.route("/log", methods=["GET", "POST"])

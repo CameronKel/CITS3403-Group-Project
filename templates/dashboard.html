@@ -29,7 +29,7 @@
   </div>
   <div class="card p-5">
     <p class="text-xs text-slate-500 mb-1">Active goals</p>
-    <p class="text-2xl font-bold text-slate-900">{{ active_goal and '1' or '0' }}</p>
+    <p class="text-2xl font-bold text-slate-900">{{ active_goals|length }}</p>
   </div>
 </div>
 
@@ -40,19 +40,31 @@
 </div>
 
 <!-- Goal progress -->
-<div class="card p-6 mb-8">
-  {% if active_goal %}
-    {% set pct = [[((active_goal.current_value / active_goal.target_value) * 100)|int, 0]|max, 100]|min %}
-    <div class="flex items-center justify-between mb-2">
-      <h2 class="text-base font-semibold text-slate-900">Current Goal: {{ active_goal.goal_type }}</h2>
-      <span class="text-sm font-bold text-indigo-600">{{ pct }}%</span>
+<div class="mb-8">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-base font-semibold text-slate-900">Active Goals</h2>
+    <a href="{{ url_for('goals') }}" class="text-sm text-indigo-600 hover:underline">View all</a>
+  </div>
+  {% if active_goals %}
+    <div class="space-y-3">
+      {% for goal in active_goals %}
+        {% set pct = [[((goal.current_value / goal.target_value) * 100)|int, 0]|max, 100]|min %}
+        <div class="card p-5">
+          <div class="flex items-center justify-between mb-2">
+            <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
+            <span class="text-sm font-bold text-indigo-600">{{ pct }}%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2.5">
+            <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ pct }}%"></div>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">{{ goal.current_value }} / {{ goal.target_value }} · Deadline {{ goal.deadline.strftime('%d %b %Y') }}</p>
+        </div>
+      {% endfor %}
     </div>
-    <div class="w-full bg-slate-100 rounded-full h-3">
-      <div class="bg-indigo-600 h-3 rounded-full transition-all" style="width: {{ pct }}%"></div>
-    </div>
-    <p class="text-xs text-slate-500 mt-2">{{ active_goal.current_value }} / {{ active_goal.target_value }} · Deadline {{ active_goal.deadline.strftime('%d %b %Y') }}</p>
   {% else %}
-    <p class="text-sm text-slate-500">No active goal. <a href="{{ url_for('goals') }}" class="text-indigo-600 hover:underline">Set one →</a></p>
+    <div class="card p-5">
+      <p class="text-sm text-slate-500">No active goals. <a href="{{ url_for('goals') }}" class="text-indigo-600 hover:underline">Set one →</a></p>
+    </div>
   {% endif %}
 </div>
 

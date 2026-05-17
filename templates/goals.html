@@ -12,31 +12,22 @@
 <!-- Active goals -->
 <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Active Goals</h2>
 <div class="space-y-4 mb-10">
-
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-1">
-      <p class="text-sm font-semibold text-slate-900">Run 50 km this month</p>
-      <span class="text-sm font-bold text-indigo-600">65%</span>
+  {% for goal in active_goals %}
+    {% set pct = [[((goal.current_value / goal.target_value) * 100)|int, 0]|max, 100]|min %}
+    <div class="card p-6">
+      <div class="flex items-center justify-between mb-1">
+        <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
+        <span class="text-sm font-bold text-indigo-600">{{ pct }}%</span>
+      </div>
+      <p class="text-xs text-slate-400 mb-3">Deadline: {{ goal.deadline.strftime('%d %b %Y') }}</p>
+      <div class="w-full bg-slate-100 rounded-full h-2.5">
+        <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ pct }}%"></div>
+      </div>
+      <p class="text-xs text-slate-400 mt-2">{{ goal.current_value }} / {{ goal.target_value }}</p>
     </div>
-    <p class="text-xs text-slate-400 mb-3">Deadline: 30 Apr 2026 · 5 days left</p>
-    <div class="w-full bg-slate-100 rounded-full h-2.5">
-      <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: 65%"></div>
-    </div>
-    <p class="text-xs text-slate-400 mt-2">32.5 km done · 17.5 km remaining</p>
-  </div>
-
-  <div class="card p-6">
-    <div class="flex items-center justify-between mb-1">
-      <p class="text-sm font-semibold text-slate-900">Work out 5x per week</p>
-      <span class="text-sm font-bold text-indigo-600">80%</span>
-    </div>
-    <p class="text-xs text-slate-400 mb-3">This week · Resets Sunday</p>
-    <div class="w-full bg-slate-100 rounded-full h-2.5">
-      <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: 80%"></div>
-    </div>
-    <p class="text-xs text-slate-400 mt-2">4 of 5 workouts done</p>
-  </div>
-
+  {% else %}
+    <p class="text-sm text-slate-400 py-2">No active goals. Set one below!</p>
+  {% endfor %}
 </div>
 
 <!-- Set new goal -->
@@ -46,23 +37,24 @@
     ✅ Goal created!
   </div>
   <form id="goalForm" class="space-y-4">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div>
       <label class="block text-sm font-medium text-slate-700 mb-1.5">Goal Type</label>
-      <select class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-        <option>Distance (km)</option>
-        <option>Total Duration (minutes)</option>
-        <option>Workout Frequency (sessions)</option>
-        <option>Calories Burned</option>
+      <select name="goal_type" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        <option value="Distance (km)">Distance (km)</option>
+        <option value="Total Duration (minutes)">Total Duration (minutes)</option>
+        <option value="Workout Frequency (sessions)">Workout Frequency (sessions)</option>
+        <option value="Calories Burned">Calories Burned</option>
       </select>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Target</label>
-        <input type="number" min="1" placeholder="e.g. 50" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+        <input type="number" name="target_value" min="1" placeholder="e.g. 50" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
       </div>
       <div>
         <label class="block text-sm font-medium text-slate-700 mb-1.5">Deadline</label>
-        <input type="date" id="deadline" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+        <input type="date" id="deadline" name="deadline" class="w-full border border-slate-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
       </div>
     </div>
     <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-lg text-sm shadow-sm transition-colors">Create Goal</button>
@@ -72,31 +64,21 @@
 <!-- Completed goals -->
 <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Completed Goals 🏆</h2>
 <div class="space-y-3">
-
+  {% for goal in completed_goals %}
   <div class="card p-5 flex items-center justify-between">
     <div>
-      <p class="text-sm font-semibold text-slate-900">Run 30 km in March</p>
-      <p class="text-xs text-slate-400 mt-0.5">Completed 28 Mar 2026 · 31.2 km total</p>
+      <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
+      <p class="text-xs text-slate-400 mt-0.5">
+        Completed {% if goal.completed_at %}{{ goal.completed_at.strftime('%d %b %Y') }}{% endif %}
+        · target {{ goal.target_value }}
+      </p>
     </div>
-    <button onclick="shareGoal('Run 30km in March')" class="text-xs text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">Share</button>
+    <button onclick="shareGoal({{ goal.id }})"
+      class="text-xs text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">Share</button>
   </div>
-
-  <div class="card p-5 flex items-center justify-between">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Work out 20x in March</p>
-      <p class="text-xs text-slate-400 mt-0.5">Completed 31 Mar 2026 · 22 sessions</p>
-    </div>
-    <button onclick="shareGoal('Work out 20x in March')" class="text-xs text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">Share</button>
-  </div>
-
-  <div class="card p-5 flex items-center justify-between">
-    <div>
-      <p class="text-sm font-semibold text-slate-900">Burn 5,000 calories in February</p>
-      <p class="text-xs text-slate-400 mt-0.5">Completed 26 Feb 2026 · 5,340 kcal</p>
-    </div>
-    <button onclick="shareGoal('Burn 5,000 calories in February')" class="text-xs text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">Share</button>
-  </div>
-
+  {% else %}
+  <p class="text-sm text-slate-400 py-2">No completed goals yet. Keep going! 💪</p>
+  {% endfor %}
 </div>
 {% endblock %}
 
@@ -106,15 +88,20 @@
   const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
   document.getElementById('deadline').value = endOfMonth.toISOString().split('T')[0];
 
-  document.getElementById('goalForm').addEventListener('submit', function(e) {
+    document.getElementById('goalForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    document.getElementById('goalSuccess').classList.remove('hidden');
-    this.reset();
-    document.getElementById('deadline').value = endOfMonth.toISOString().split('T')[0];
+    fetch('{{ url_for("goals") }}', { method: 'POST', body: new FormData(this) })
+      .then(r => r.json())
+      .then(() => {
+        document.getElementById('goalSuccess').classList.remove('hidden');
+        setTimeout(() => location.reload(), 800);
+      });
   });
 
-  function shareGoal(name) {
-    alert(`Shared to your feed: "${name}" 🎉`);
+  function shareGoal(id) {
+    const csrf = document.querySelector('[name=csrf_token]').value;
+    fetch(`/goals/${id}/share`, { method: 'POST', headers: {'X-CSRFToken': csrf} })
+      .then(() => alert('Shared to your feed! 🎉'));
   }
 </script>
 {% endblock %}
