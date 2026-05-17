@@ -295,9 +295,12 @@ def view_user(username):
 
     is_friend = user in current_user.friends
     settings = UserSettings.query.filter_by(user_id=user.id).first()
-    is_public = (settings is None) or (settings.privacy == "public")
-    if not (is_friend or is_public):
+    privacy = settings.privacy if settings else "public"
+    if privacy == "private":
         flash("This profile is private.", "error")
+        return redirect(url_for("social"))
+    if privacy == "friends" and not is_friend:
+        flash("This profile is friends-only.", "error")
         return redirect(url_for("social"))
 
     total_workouts  = Exercise.query.filter_by(user_id=user.id).count()
@@ -343,6 +346,17 @@ def settings():
                 current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
+
+        new_password = request.form.get("new_password", "")
+        if new_password:
+            if not current_user.check_password(request.form.get("current_password", "")):
+                flash("Current password is incorrect.", "error")
+                return redirect(url_for("settings"))
+            if len(new_password) < 8:
+                flash("New password must be at least 8 characters.", "error")
+                return redirect(url_for("settings"))
+            current_user.set_password(new_password)
+
         db.session.commit()
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))

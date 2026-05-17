@@ -9,16 +9,6 @@
   <p class="text-slate-500 text-sm mt-1">Manage your account and preferences</p>
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% for category, message in messages %}
-    <div class="mb-4 px-4 py-3 rounded-xl text-sm
-      {% if category == 'error' %}bg-red-50 border border-red-200 text-red-800
-      {% else %}bg-emerald-50 border border-emerald-200 text-emerald-800{% endif %}">
-      {{ message }}
-    </div>
-  {% endfor %}
-{% endwith %}
-
 <div id="saveSuccess" class="hidden mb-6 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-4 py-3 text-sm">
   ✅ Settings saved!
 </div>
@@ -47,10 +37,6 @@
     <div>
       <label class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
       <input type="email" name="email" value="{{ current_user.email }}" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-    </div>
-    <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1.5">Bio</label>
-      <textarea name="bio" rows="3" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">{{ current_user.bio or '' }}</textarea>
     </div>
   </div>
 </div>
@@ -150,14 +136,15 @@
 <!-- Password -->
 <div class="card p-6 mb-8">
   <h2 class="text-base font-semibold text-slate-900 mb-5">Change Password</h2>
+  <p class="text-xs text-slate-400 mb-4">Leave both fields blank if you don't want to change it.</p>
   <div class="space-y-4">
     <div>
       <label class="block text-sm font-medium text-slate-700 mb-1.5">Current Password</label>
-      <input type="password" placeholder="••••••••" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+      <input type="password" name="current_password" autocomplete="current-password" placeholder="••••••••" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
     </div>
     <div>
-      <label class="block text-sm font-medium text-slate-700 mb-1.5">New Password</label>
-      <input type="password" placeholder="••••••••" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+      <label class="block text-sm font-medium text-slate-700 mb-1.5">New Password <span class="text-slate-400 font-normal">(min 8 characters)</span></label>
+      <input type="password" name="new_password" autocomplete="new-password" placeholder="••••••••" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
     </div>
   </div>
 </div>
