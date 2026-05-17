@@ -1,6 +1,8 @@
 import os
+import socket
 import sys
 import tempfile
+import threading
 
 import pytest
 
@@ -51,3 +53,56 @@ def auth_client(client, user):
         follow_redirects=False,
     )
     return client
+
+
+# --- Selenium fixtures ---
+
+@pytest.fixture(scope="session")
+def live_server_url():
+    """Run the Flask app on a real port in a background thread for Selenium tests."""
+    from werkzeug.serving import make_server
+
+    flask_app.config.update(
+        TESTING=True,
+        WTF_CSRF_ENABLED=False,
+        SQLALCHEMY_DATABASE_URI=f"sqlite:///{_db_path}",
+    )
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+
+    server = make_server("127.0.0.1", port, flask_app)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{port}"
+    finally:
+        server.shutdown()
+
+
+@pytest.fixture
+def browser():
+    """Headless Chrome driver. Skips the test if Chrome/Selenium isn't available."""
+    selenium = pytest.importorskip("selenium")
+    from selenium import webdriver
+    from selenium.common.exceptions import WebDriverException
+    from selenium.webdriver.chrome.options import Options
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1280,900")
+
+    try:
+        driver = webdriver.Chrome(options=options)
+    except WebDriverException as e:
+        pytest.skip(f"Chrome WebDriver unavailable: {e}")
+
+    driver.set_page_load_timeout(15)
+    try:
+        yield driver
+    finally:
+        driver.quit()

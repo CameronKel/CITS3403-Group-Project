@@ -52,9 +52,18 @@ Open http://127.0.0.1:5000. The SQLite database is auto-created at `instance/app
 
 ## Tests
 
-Unit tests live in `tests/` and use pytest. Each test runs against a throwaway SQLite file with CSRF disabled — the dev database is never touched.
+Tests live in `tests/` and use pytest. Each test runs against a throwaway SQLite file with CSRF disabled — the dev database is never touched.
 
 ```bash
 pip install -r requirements.txt
 python -m pytest
+```
+
+- `test_auth.py`, `test_exercises.py`, `test_goals.py` — unit tests using Flask's test client.
+- `test_selenium.py` — end-to-end tests that drive a real browser against a live Flask server. They need Chrome installed; Selenium 4 ships with Selenium Manager and downloads a matching ChromeDriver automatically. If Chrome isn't available these tests are skipped, not failed.
+
+Run only the Selenium suite with:
+
+```bash
+python -m pytest tests/test_selenium.py
 ```
