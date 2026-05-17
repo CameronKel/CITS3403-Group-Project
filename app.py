@@ -14,7 +14,8 @@ from flask_wtf.csrf import CSRFProtect
 
 from forms import LoginForm, SignupForm
 from datetime import date, datetime
-from models import Exercise, FeedPost, Goal, User, UserSettings, db
+from models import Exercise, FeedPost, Goal, User, UserAchievement, UserSettings, db
+from achievements import award_achievements, status_for_user, BY_KEY
 
 load_dotenv()
 
@@ -128,6 +129,11 @@ def log_exercise():
         )
         db.session.add(exercise)
         db.session.commit()
+        newly_earned = award_achievements(current_user.id)
+        for key in newly_earned:
+            a = BY_KEY.get(key)
+            if a:
+                flash(f"🏆 Achievement unlocked: {a.name}", "success")
         flash("Workout saved!", "success")
         return redirect(url_for("history"))
     return render_template("log_exercise.html", active_page="log_exercise")
@@ -227,10 +233,15 @@ def profile():
                         .filter_by(user_id=current_user.id).scalar() or 0
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
                           if g.is_completed_now)
+    # Re-check on profile view so power users who racked up qualifying activity
+    # before this feature shipped get backfilled.
+    award_achievements(current_user.id)
+    achievements_status = status_for_user(current_user.id)
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
         total_distance=round(total_distance, 1),
-        completed_goals=completed_goals)
+        completed_goals=completed_goals,
+        achievements_status=achievements_status)
 
 
 @app.route("/settings", methods=["GET", "POST"])
