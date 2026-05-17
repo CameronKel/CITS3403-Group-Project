@@ -1,7 +1,7 @@
 from datetime import date, datetime, timedelta
 
 from achievements import award_achievements, status_for_user
-from models import Exercise, Goal, UserAchievement, db
+from models import Exercise, FeedPost, Goal, UserAchievement, db
 
 
 def _log(user_id, **kwargs):
@@ -120,3 +120,26 @@ def test_status_for_user_returns_progress_for_all_achievements(app, user):
     # first_workout reaches its target but hasn't been awarded yet (we haven't
     # called award_achievements), so earned_at is None but current >= target.
     assert by_key["first_workout"][1] >= by_key["first_workout"][2]
+
+
+def test_share_earned_achievement_creates_feed_post(auth_client, user):
+    _log(user.id)
+    db.session.commit()
+    award_achievements(user.id)
+
+    resp = auth_client.post("/achievements/first_workout/share")
+    assert resp.status_code == 200
+    assert resp.get_json()["status"] == "shared"
+    post = FeedPost.query.filter_by(user_id=user.id, post_type="achievement").one()
+    assert "First Steps" in post.content
+
+
+def test_sharing_unearned_achievement_is_forbidden(auth_client, user):
+    resp = auth_client.post("/achievements/first_workout/share")
+    assert resp.status_code == 403
+    assert FeedPost.query.filter_by(post_type="achievement").count() == 0
+
+
+def test_sharing_unknown_achievement_returns_404(auth_client, user):
+    resp = auth_client.post("/achievements/not_a_real_key/share")
+    assert resp.status_code == 404
