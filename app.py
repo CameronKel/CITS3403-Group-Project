@@ -11,6 +11,7 @@ from flask_login import (
     logout_user,
 )
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import func
 
 from forms import LoginForm, SignupForm
 from datetime import date, datetime
@@ -62,8 +63,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         ident = form.identifier.data.strip()
+        ident_lower = ident.lower()
         user = User.query.filter(
-            (User.username == ident) | (User.email == ident.lower())
+            (func.lower(User.username) == ident_lower) | (User.email == ident_lower)
         ).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
@@ -103,7 +105,7 @@ def dashboard():
     week_minutes = sum(e.duration for e in week_exercises)
     month_minutes = sum(e.duration for e in month_exercises)
     active_goals  = [g for g in Goal.query.filter_by(user_id=current_user.id).all()
-                     if not g.is_completed_now]
+                     if not g.is_completed_now and not g.is_expired]
     recent       = (Exercise.query
                     .filter_by(user_id=current_user.id)
                     .order_by(Exercise.date.desc())
@@ -172,6 +174,7 @@ def delete_exercise(id):
     if exercise and exercise.user_id == current_user.id:
         db.session.delete(exercise)
         db.session.commit()
+        award_achievements(current_user.id)
         flash("Workout deleted.", "success")
     return redirect(url_for("history"))
 
@@ -191,6 +194,11 @@ def edit_exercise(id):
         for k, v in kwargs.items():
             setattr(exercise, k, v)
         db.session.commit()
+        newly_earned = award_achievements(current_user.id)
+        for key in newly_earned:
+            a = BY_KEY.get(key)
+            if a:
+                flash(f"🏆 Achievement unlocked: {a.name}", "success")
         flash("Workout updated!", "success")
         return redirect(url_for("history"))
     return render_template("edit_exercise.html", active_page="history", exercise=exercise)
@@ -200,20 +208,29 @@ def edit_exercise(id):
 @login_required
 def goals():
     if request.method == "POST":
+        try:
+            deadline = date.fromisoformat(request.form["deadline"])
+        except (KeyError, ValueError):
+            return jsonify({"error": "Invalid deadline."}), 400
+        if deadline < date.today():
+            return jsonify({"error": "Deadline cannot be in the past."}), 400
         goal = Goal(
             user_id      = current_user.id,
             goal_type    = request.form["goal_type"],
             target_value = float(request.form["target_value"]),
-            deadline     = date.fromisoformat(request.form["deadline"]),
+            deadline     = deadline,
         )
         db.session.add(goal)
         db.session.commit()
         return jsonify({"status": "ok", "id": goal.id})   # AJAX response
     all_goals       = Goal.query.filter_by(user_id=current_user.id).all()
-    active_goals    = [g for g in all_goals if not g.is_completed_now]
+    active_goals    = [g for g in all_goals if not g.is_completed_now and not g.is_expired]
     completed_goals = [g for g in all_goals if g.is_completed_now]
+    expired_goals   = [g for g in all_goals if g.is_expired]
     return render_template("goals.html", active_page="goals",
-                           active_goals=active_goals, completed_goals=completed_goals)
+                           active_goals=active_goals,
+                           completed_goals=completed_goals,
+                           expired_goals=expired_goals)
 
 
 @app.route("/goals/<int:id>/share", methods=["POST"])
@@ -272,9 +289,6 @@ def profile():
                         .filter_by(user_id=current_user.id).scalar() or 0
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
                           if g.is_completed_now)
-    # Re-check on profile view so power users who racked up qualifying activity
-    # before this feature shipped get backfilled.
-    award_achievements(current_user.id)
     achievements_status = status_for_user(current_user.id)
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
@@ -286,7 +300,7 @@ def profile():
 @app.route("/users/<username>")
 @login_required
 def view_user(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter(func.lower(User.username) == username.lower()).first()
     if not user:
         flash("User not found.", "error")
         return redirect(url_for("social"))
@@ -308,7 +322,6 @@ def view_user(username):
                         .filter_by(user_id=user.id).scalar() or 0
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=user.id).all()
                           if g.is_completed_now)
-    award_achievements(user.id)
     achievements_status = status_for_user(user.id)
 
     return render_template("friend_profile.html", active_page="social",
@@ -338,8 +351,12 @@ def settings():
         s.privacy           = request.form.get("privacy", "public")
         new_username = request.form.get("username", "").strip()
         new_email    = request.form.get("email", "").strip().lower()
-        if new_username and new_username != current_user.username:
-            if not User.query.filter_by(username=new_username).first():
+        if new_username and new_username.lower() != current_user.username.lower():
+            taken = User.query.filter(
+                func.lower(User.username) == new_username.lower(),
+                User.id != current_user.id,
+            ).first()
+            if not taken:
                 current_user.username = new_username
         if new_email and new_email != current_user.email:
             if not User.query.filter_by(email=new_email).first():

@@ -124,6 +124,13 @@ class Goal(db.Model):
         return self.target_value > 0 and self.computed_current >= self.target_value
 
     @property
+    def is_expired(self) -> bool:
+        """Past deadline and the target was never reached."""
+        if self.deadline is None:
+            return False
+        return self.deadline < date.today() and not self.is_completed_now
+
+    @property
     def display_current(self):
         """Friendly value for templates: int for counts, rounded float otherwise."""
         val = self.computed_current
