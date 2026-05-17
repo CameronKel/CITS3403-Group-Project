@@ -174,6 +174,7 @@ def delete_exercise(id):
     if exercise and exercise.user_id == current_user.id:
         db.session.delete(exercise)
         db.session.commit()
+        award_achievements(current_user.id)
         flash("Workout deleted.", "success")
     return redirect(url_for("history"))
 
@@ -193,6 +194,11 @@ def edit_exercise(id):
         for k, v in kwargs.items():
             setattr(exercise, k, v)
         db.session.commit()
+        newly_earned = award_achievements(current_user.id)
+        for key in newly_earned:
+            a = BY_KEY.get(key)
+            if a:
+                flash(f"🏆 Achievement unlocked: {a.name}", "success")
         flash("Workout updated!", "success")
         return redirect(url_for("history"))
     return render_template("edit_exercise.html", active_page="history", exercise=exercise)
@@ -274,9 +280,6 @@ def profile():
                         .filter_by(user_id=current_user.id).scalar() or 0
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
                           if g.is_completed_now)
-    # Re-check on profile view so power users who racked up qualifying activity
-    # before this feature shipped get backfilled.
-    award_achievements(current_user.id)
     achievements_status = status_for_user(current_user.id)
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
@@ -310,7 +313,6 @@ def view_user(username):
                         .filter_by(user_id=user.id).scalar() or 0
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=user.id).all()
                           if g.is_completed_now)
-    award_achievements(user.id)
     achievements_status = status_for_user(user.id)
 
     return render_template("friend_profile.html", active_page="social",
