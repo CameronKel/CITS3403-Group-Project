@@ -11,6 +11,7 @@ from flask_login import (
     logout_user,
 )
 from flask_wtf.csrf import CSRFProtect
+from sqlalchemy import func
 
 from forms import LoginForm, SignupForm
 from datetime import date, datetime
@@ -62,8 +63,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         ident = form.identifier.data.strip()
+        ident_lower = ident.lower()
         user = User.query.filter(
-            (User.username == ident) | (User.email == ident.lower())
+            (func.lower(User.username) == ident_lower) | (User.email == ident_lower)
         ).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
@@ -286,7 +288,7 @@ def profile():
 @app.route("/users/<username>")
 @login_required
 def view_user(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter(func.lower(User.username) == username.lower()).first()
     if not user:
         flash("User not found.", "error")
         return redirect(url_for("social"))
@@ -338,8 +340,12 @@ def settings():
         s.privacy           = request.form.get("privacy", "public")
         new_username = request.form.get("username", "").strip()
         new_email    = request.form.get("email", "").strip().lower()
-        if new_username and new_username != current_user.username:
-            if not User.query.filter_by(username=new_username).first():
+        if new_username and new_username.lower() != current_user.username.lower():
+            taken = User.query.filter(
+                func.lower(User.username) == new_username.lower(),
+                User.id != current_user.id,
+            ).first()
+            if not taken:
                 current_user.username = new_username
         if new_email and new_email != current_user.email:
             if not User.query.filter_by(email=new_email).first():

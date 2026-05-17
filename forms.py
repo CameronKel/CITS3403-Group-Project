@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from sqlalchemy import func
 from wtforms import BooleanField, PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Regexp, ValidationError
 
@@ -33,7 +34,7 @@ class SignupForm(FlaskForm):
     submit = SubmitField("Create Account")
 
     def validate_username(self, field):
-        if User.query.filter_by(username=field.data).first():
+        if User.query.filter(func.lower(User.username) == field.data.lower()).first():
             raise ValidationError("That username is already taken.")
 
     def validate_email(self, field):
