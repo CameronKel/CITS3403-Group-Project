@@ -14,10 +14,15 @@
 </div>
 
 <!-- Stat cards -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
   <div class="card p-5">
     <p class="text-xs text-slate-500 mb-1">Workouts this week</p>
     <p class="text-2xl font-bold text-slate-900">{{ week_count }}</p>
+  </div>
+  <div class="card p-5">
+    <p class="text-xs text-slate-500 mb-1">Current Streak</p>
+    <p class="text-2xl font-bold text-slate-900">{{ streak }}</p>
+    <p class="text-xs text-slate-400 mt-0.5">days</p>
   </div>
   <div class="card p-5">
     <p class="text-xs text-slate-500 mb-1">Minutes this week</p>

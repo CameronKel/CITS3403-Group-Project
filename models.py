@@ -28,7 +28,9 @@ class User(UserMixin, db.Model):
     created_at      = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     first_name = db.Column(db.String(64), nullable=True)
     last_name  = db.Column(db.String(64), nullable=True)
-
+    bio = db.Column(db.Text, nullable=True)
+    streak = db.Column(db.Integer, default=0, nullable=False, server_default='0')
+    
     friends = db.relationship(
         "User",
         secondary=friendships,
