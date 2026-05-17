@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% set content_max_width = "max-w-4xl" %}
+
+{% block title %}Exercise-Tracker – {{ viewed_user.username }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('social') }}" class="text-sm text-indigo-600 hover:underline inline-block mb-4">
+  <i class="fas fa-arrow-left text-xs mr-1"></i> Back to feed
+</a>
+
+<!-- Profile header -->
+<div class="card p-6 md:p-8 mb-8">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-2xl shrink-0">{{ viewed_user.username[0]|upper }}</div>
+    <div class="flex-1">
+      <h1 class="text-2xl font-bold text-slate-900">{{ viewed_user.username }}</h1>
+      <p class="text-sm text-slate-400">@{{ viewed_user.username }} · Member since {{ viewed_user.created_at.strftime('%b %Y') }}</p>
+    </div>
+    {% if not is_friend %}
+      <button id="addFriendBtn"
+        class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg transition-colors">
+        <i class="fas fa-user-plus text-xs mr-1"></i> Add friend
+      </button>
+    {% else %}
+      <span class="text-sm text-emerald-600 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg">
+        <i class="fas fa-check text-xs mr-1"></i> Friends
+      </span>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center pt-6 border-t border-slate-100">
+    <div>
+      <p class="text-2xl font-bold text-slate-900">{{ total_workouts }}</p>
+      <p class="text-xs text-slate-400 mt-0.5">Workouts</p>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-slate-900">{{ total_distance }} km</p>
+      <p class="text-xs text-slate-400 mt-0.5">Distance</p>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-slate-900">{{ viewed_user.friends|length }}</p>
+      <p class="text-xs text-slate-400 mt-0.5">Friends</p>
+    </div>
+    <div>
+      <p class="text-2xl font-bold text-slate-900">{{ completed_goals }}</p>
+      <p class="text-xs text-slate-400 mt-0.5">Goals done</p>
+    </div>
+  </div>
+</div>
+
+<!-- Achievements -->
+<div class="card p-6">
+  {% set earned_count = achievements_status | selectattr(1) | list | length %}
+  <div class="flex items-center justify-between mb-5">
+    <h2 class="text-base font-semibold text-slate-900">{{ viewed_user.username }}'s Achievements</h2>
+    <span class="text-xs text-slate-400">{{ earned_count }} / {{ achievements_status|length }}</span>
+  </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {% for a, earned_at, current, target in achievements_status %}
+      <div class="flex items-center gap-3 p-3 rounded-lg {% if earned_at %}bg-emerald-50/50{% else %}bg-slate-50{% endif %}">
+        <span class="text-2xl {% if not earned_at %}opacity-40{% endif %}">{{ a.emoji }}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium {% if earned_at %}text-slate-900{% else %}text-slate-400{% endif %} truncate">{{ a.name }}</p>
+          <p class="text-xs text-slate-400 truncate">{{ a.description }}</p>
+        </div>
+        {% if earned_at %}
+          <i class="fas fa-check-circle text-emerald-500" title="Earned {{ earned_at.strftime('%d %b %Y') }}"></i>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if not is_friend %}
+<script>
+  document.getElementById('addFriendBtn').addEventListener('click', function () {
+    fetch('/api/friends/add/{{ viewed_user.id }}', {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token() }}'},
+    }).then(() => location.reload());
+  });
+</script>
+{% endif %}
+{% endblock %}

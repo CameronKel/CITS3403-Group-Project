@@ -45,14 +45,16 @@
     </div>
     <div class="space-y-4">
       {% for friend in current_user.friends %}
-      <div class="flex items-center gap-3">
+      <a href="{{ url_for('view_user', username=friend.username) }}"
+         class="flex items-center gap-3 -mx-2 px-2 py-1 rounded-lg hover:bg-slate-50 transition-colors">
         <div class="w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-sm">
           {{ friend.username[0]|upper }}
         </div>
         <div class="flex-1">
           <p class="text-sm font-medium text-slate-900">{{ friend.username }}</p>
         </div>
-      </div>
+        <i class="fas fa-chevron-right text-xs text-slate-300"></i>
+      </a>
       {% else %}
       <p class="text-sm text-slate-400">No friends yet. <a href="{{ url_for('social') }}" class="text-indigo-600 hover:underline">Find some!</a></p>
       {% endfor %}

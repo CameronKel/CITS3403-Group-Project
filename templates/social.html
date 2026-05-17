@@ -23,7 +23,12 @@
         {{ post.user.username[0]|upper }}
       </div>
       <div>
-        <p class="text-sm font-semibold text-slate-900">{{ post.user.username }}</p>
+        {% if post.user_id == current_user.id %}
+          <p class="text-sm font-semibold text-slate-900">{{ post.user.username }}</p>
+        {% else %}
+          <a href="{{ url_for('view_user', username=post.user.username) }}"
+             class="text-sm font-semibold text-slate-900 hover:text-indigo-600 hover:underline">{{ post.user.username }}</a>
+        {% endif %}
         <p class="text-xs text-slate-400">{{ post.created_at.strftime('%d %b · %H:%M') }}</p>
       </div>
       <span class="ml-auto text-xs bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full">
@@ -53,7 +58,8 @@
       }
       const html = users.map(u =>
         `<div class="flex items-center justify-between px-3 py-2 bg-slate-50 rounded-lg">
-           <span class="text-sm font-medium text-slate-900">${u.username}</span>
+           <a href="/users/${encodeURIComponent(u.username)}"
+              class="text-sm font-medium text-slate-900 hover:text-indigo-600 hover:underline">${u.username}</a>
            <button onclick="addFriend(${u.id})"
              class="text-xs text-indigo-600 border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50">Add</button>
          </div>`
