@@ -62,7 +62,7 @@
 
 <!-- Completed goals -->
 <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Completed Goals 🏆</h2>
-<div class="space-y-3">
+<div class="space-y-3 mb-10">
   {% for goal in completed_goals %}
   <div class="card p-5 flex items-center justify-between">
     <div>
@@ -79,16 +79,39 @@
   <p class="text-sm text-slate-400 py-2">No completed goals yet. Keep going! 💪</p>
   {% endfor %}
 </div>
+
+<!-- Expired goals -->
+{% if expired_goals %}
+<h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Expired Goals</h2>
+<div class="space-y-3">
+  {% for goal in expired_goals %}
+  <div class="card p-5 opacity-70">
+    <div class="flex items-center justify-between mb-1">
+      <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
+      <span class="text-xs font-semibold text-slate-500">Expired</span>
+    </div>
+    <p class="text-xs text-slate-400 mb-1">
+      Deadline was {{ goal.deadline.strftime('%d %b %Y') }} · reached {{ goal.display_current }} / {{ goal.target_value }}
+    </p>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
   const d = new Date();
   const today = d.toISOString().split('T')[0];
-  const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+  // Default to whichever is further away: end-of-month or four weeks out.
+  // This avoids the 1-day-window pitfall when creating a goal late in the month.
+  const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+  const fourWeeks = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 28);
+  const defaultDeadline = (fourWeeks > endOfMonth ? fourWeeks : endOfMonth)
+    .toISOString().split('T')[0];
   const deadlineInput = document.getElementById('deadline');
   deadlineInput.min = today;
-  deadlineInput.value = endOfMonth;
+  deadlineInput.value = defaultDeadline;
 
     document.getElementById('goalForm').addEventListener('submit', function(e) {
     e.preventDefault();

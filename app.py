@@ -105,7 +105,7 @@ def dashboard():
     week_minutes = sum(e.duration for e in week_exercises)
     month_minutes = sum(e.duration for e in month_exercises)
     active_goals  = [g for g in Goal.query.filter_by(user_id=current_user.id).all()
-                     if not g.is_completed_now]
+                     if not g.is_completed_now and not g.is_expired]
     recent       = (Exercise.query
                     .filter_by(user_id=current_user.id)
                     .order_by(Exercise.date.desc())
@@ -224,10 +224,13 @@ def goals():
         db.session.commit()
         return jsonify({"status": "ok", "id": goal.id})   # AJAX response
     all_goals       = Goal.query.filter_by(user_id=current_user.id).all()
-    active_goals    = [g for g in all_goals if not g.is_completed_now]
+    active_goals    = [g for g in all_goals if not g.is_completed_now and not g.is_expired]
     completed_goals = [g for g in all_goals if g.is_completed_now]
+    expired_goals   = [g for g in all_goals if g.is_expired]
     return render_template("goals.html", active_page="goals",
-                           active_goals=active_goals, completed_goals=completed_goals)
+                           active_goals=active_goals,
+                           completed_goals=completed_goals,
+                           expired_goals=expired_goals)
 
 
 @app.route("/goals/<int:id>/share", methods=["POST"])
