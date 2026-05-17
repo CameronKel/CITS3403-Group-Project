@@ -148,3 +148,30 @@ def test_sidebar_navigation_to_profile_page(app, user, live_server_url, browser)
     WebDriverWait(browser, 10).until(EC.url_contains("/profile"))
     body = browser.find_element(By.TAG_NAME, "body").text
     assert "alice" in body
+
+
+def test_clicking_friend_in_profile_opens_their_profile(app, user, live_server_url, browser):
+    from models import User, UserSettings, db
+    # Set up a friend with a public profile.
+    with app.app_context():
+        bob = User(username="bob_e2e", email="bob_e2e@example.com")
+        bob.set_password("password123")
+        db.session.add(bob)
+        db.session.commit()
+        db.session.add(UserSettings(user_id=bob.id, privacy="public"))
+        u = db.session.get(User, user.id)
+        u.friends.append(bob)
+        db.session.commit()
+
+    _login(browser, live_server_url)
+    browser.get(f"{live_server_url}/profile")
+
+    friend_link = WebDriverWait(browser, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/users/bob_e2e')]"))
+    )
+    friend_link.click()
+
+    WebDriverWait(browser, 10).until(EC.url_contains("/users/bob_e2e"))
+    body = browser.find_element(By.TAG_NAME, "body").text
+    assert "bob_e2e" in body
+    assert "Achievements" in body

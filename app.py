@@ -244,6 +244,39 @@ def profile():
         achievements_status=achievements_status)
 
 
+@app.route("/users/<username>")
+@login_required
+def view_user(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        flash("User not found.", "error")
+        return redirect(url_for("social"))
+    if user.id == current_user.id:
+        return redirect(url_for("profile"))
+
+    is_friend = user in current_user.friends
+    settings = UserSettings.query.filter_by(user_id=user.id).first()
+    is_public = (settings is None) or (settings.privacy == "public")
+    if not (is_friend or is_public):
+        flash("This profile is private.", "error")
+        return redirect(url_for("social"))
+
+    total_workouts  = Exercise.query.filter_by(user_id=user.id).count()
+    total_distance  = db.session.query(db.func.sum(Exercise.distance)) \
+                        .filter_by(user_id=user.id).scalar() or 0
+    completed_goals = sum(1 for g in Goal.query.filter_by(user_id=user.id).all()
+                          if g.is_completed_now)
+    award_achievements(user.id)
+    achievements_status = status_for_user(user.id)
+
+    return render_template("friend_profile.html", active_page="social",
+        viewed_user=user, is_friend=is_friend,
+        total_workouts=total_workouts,
+        total_distance=round(total_distance, 1),
+        completed_goals=completed_goals,
+        achievements_status=achievements_status)
+
+
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
