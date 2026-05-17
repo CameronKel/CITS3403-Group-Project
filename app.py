@@ -101,7 +101,8 @@ def dashboard():
     week_count   = len(week_exercises)
     week_minutes = sum(e.duration for e in week_exercises)
     month_minutes = sum(e.duration for e in month_exercises)
-    active_goals  = Goal.query.filter_by(user_id=current_user.id, completed=False).all()
+    active_goals  = [g for g in Goal.query.filter_by(user_id=current_user.id).all()
+                     if not g.is_completed_now]
     recent       = (Exercise.query
                     .filter_by(user_id=current_user.id)
                     .order_by(Exercise.date.desc())
@@ -184,8 +185,9 @@ def goals():
         db.session.add(goal)
         db.session.commit()
         return jsonify({"status": "ok", "id": goal.id})   # AJAX response
-    active_goals    = Goal.query.filter_by(user_id=current_user.id, completed=False).all()
-    completed_goals = Goal.query.filter_by(user_id=current_user.id, completed=True).all()
+    all_goals       = Goal.query.filter_by(user_id=current_user.id).all()
+    active_goals    = [g for g in all_goals if not g.is_completed_now]
+    completed_goals = [g for g in all_goals if g.is_completed_now]
     return render_template("goals.html", active_page="goals",
                            active_goals=active_goals, completed_goals=completed_goals)
 
@@ -223,7 +225,8 @@ def profile():
     total_workouts  = Exercise.query.filter_by(user_id=current_user.id).count()
     total_distance  = db.session.query(db.func.sum(Exercise.distance)) \
                         .filter_by(user_id=current_user.id).scalar() or 0
-    completed_goals = Goal.query.filter_by(user_id=current_user.id, completed=True).count()
+    completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
+                          if g.is_completed_now)
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
         total_distance=round(total_distance, 1),

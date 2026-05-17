@@ -48,16 +48,15 @@
   {% if active_goals %}
     <div class="space-y-3">
       {% for goal in active_goals %}
-        {% set pct = [[((goal.current_value / goal.target_value) * 100)|int, 0]|max, 100]|min %}
         <div class="card p-5">
           <div class="flex items-center justify-between mb-2">
             <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
-            <span class="text-sm font-bold text-indigo-600">{{ pct }}%</span>
+            <span class="text-sm font-bold text-indigo-600">{{ goal.progress_pct }}%</span>
           </div>
           <div class="w-full bg-slate-100 rounded-full h-2.5">
-            <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ pct }}%"></div>
+            <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ goal.progress_pct }}%"></div>
           </div>
-          <p class="text-xs text-slate-500 mt-2">{{ goal.current_value }} / {{ goal.target_value }} · Deadline {{ goal.deadline.strftime('%d %b %Y') }}</p>
+          <p class="text-xs text-slate-500 mt-2">{{ goal.display_current }} / {{ goal.target_value }} · Deadline {{ goal.deadline.strftime('%d %b %Y') }}</p>
         </div>
       {% endfor %}
     </div>

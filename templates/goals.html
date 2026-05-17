@@ -13,17 +13,16 @@
 <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Active Goals</h2>
 <div class="space-y-4 mb-10">
   {% for goal in active_goals %}
-    {% set pct = [[((goal.current_value / goal.target_value) * 100)|int, 0]|max, 100]|min %}
     <div class="card p-6">
       <div class="flex items-center justify-between mb-1">
         <p class="text-sm font-semibold text-slate-900">{{ goal.goal_type }}</p>
-        <span class="text-sm font-bold text-indigo-600">{{ pct }}%</span>
+        <span class="text-sm font-bold text-indigo-600">{{ goal.progress_pct }}%</span>
       </div>
       <p class="text-xs text-slate-400 mb-3">Deadline: {{ goal.deadline.strftime('%d %b %Y') }}</p>
       <div class="w-full bg-slate-100 rounded-full h-2.5">
-        <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ pct }}%"></div>
+        <div class="bg-indigo-600 h-2.5 rounded-full transition-all" style="width: {{ goal.progress_pct }}%"></div>
       </div>
-      <p class="text-xs text-slate-400 mt-2">{{ goal.current_value }} / {{ goal.target_value }}</p>
+      <p class="text-xs text-slate-400 mt-2">{{ goal.display_current }} / {{ goal.target_value }}</p>
     </div>
   {% else %}
     <p class="text-sm text-slate-400 py-2">No active goals. Set one below!</p>

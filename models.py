@@ -1,10 +1,15 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from werkzeug.security import check_password_hash, generate_password_hash
 
 db = SQLAlchemy()
+
+
+# Rough calories/minute by intensity, used for "Calories Burned" goals.
+_CAL_PER_MIN = {"Low": 5, "Medium": 8, "High": 12}
 
 friendships = db.Table(
     "friendships",
@@ -77,6 +82,54 @@ class Goal(db.Model):
 
     def __repr__(self):
         return f"<Goal {self.goal_type} target={self.target_value}>"
+
+    @property
+    def computed_current(self) -> float:
+        """Live progress derived from the user's exercises in this goal's window."""
+        start = self.created_at.date() if self.created_at else date.today()
+        end = min(date.today(), self.deadline) if self.deadline else date.today()
+
+        q = Exercise.query.filter(
+            Exercise.user_id == self.user_id,
+            Exercise.date >= start,
+            Exercise.date <= end,
+        )
+
+        if self.goal_type == "Distance (km)":
+            return float(q.with_entities(
+                func.coalesce(func.sum(Exercise.distance), 0.0)
+            ).scalar() or 0)
+        if self.goal_type == "Total Duration (minutes)":
+            return float(q.with_entities(
+                func.coalesce(func.sum(Exercise.duration), 0)
+            ).scalar() or 0)
+        if self.goal_type == "Workout Frequency (sessions)":
+            return float(q.count())
+        if self.goal_type == "Calories Burned":
+            return float(sum(
+                e.duration * _CAL_PER_MIN.get(e.intensity, 5) for e in q.all()
+            ))
+        return 0.0
+
+    @property
+    def progress_pct(self) -> int:
+        if not self.target_value:
+            return 0
+        return max(0, min(100, int((self.computed_current / self.target_value) * 100)))
+
+    @property
+    def is_completed_now(self) -> bool:
+        return self.target_value > 0 and self.computed_current >= self.target_value
+
+    @property
+    def display_current(self):
+        """Friendly value for templates: int for counts, rounded float otherwise."""
+        val = self.computed_current
+        if self.goal_type == "Workout Frequency (sessions)":
+            return int(val)
+        if val == int(val):
+            return int(val)
+        return round(val, 1)
     
 
 class FeedPost(db.Model):
