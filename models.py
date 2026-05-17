@@ -151,6 +151,23 @@ class FeedPost(db.Model):
         return f"<FeedPost {self.post_type} by user {self.user_id}>"
 
 
+class UserAchievement(db.Model):
+    __tablename__ = "user_achievements"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "achievement_key", name="uq_user_achievement"),
+    )
+
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    achievement_key = db.Column(db.String(64), nullable=False)
+    earned_at       = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    user = db.relationship("User", backref="achievements")
+
+    def __repr__(self):
+        return f"<UserAchievement {self.achievement_key} user={self.user_id}>"
+
+
 class UserSettings(db.Model):
     __tablename__ = "user_settings"
 
