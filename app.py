@@ -426,9 +426,10 @@ def search_users():
     q = request.args.get("q", "").strip()
     if len(q) < 2:
         return jsonify([])
+    excluded_ids = {current_user.id} | {f.id for f in current_user.friends}
     users = User.query.filter(
         User.username.ilike(f"%{q}%"),
-        User.id != current_user.id
+        ~User.id.in_(excluded_ids),
     ).limit(10).all()
     return jsonify([{"id": u.id, "username": u.username} for u in users])
 
