@@ -21,6 +21,8 @@ class User(UserMixin, db.Model):
     email           = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash   = db.Column(db.String(256), nullable=False)
     created_at      = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    first_name = db.Column(db.String(64), nullable=True)
+    last_name  = db.Column(db.String(64), nullable=True)
 
     friends = db.relationship(
         "User",

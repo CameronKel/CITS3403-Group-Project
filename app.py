@@ -247,6 +247,16 @@ def settings():
         s.training_days     = ",".join(request.form.getlist("training_days"))
         s.reminder_time     = request.form.get("reminder_time", "07:30")
         s.privacy           = request.form.get("privacy", "public")
+        new_username = request.form.get("username", "").strip()
+        new_email    = request.form.get("email", "").strip().lower()
+        if new_username and new_username != current_user.username:
+            if not User.query.filter_by(username=new_username).first():
+                current_user.username = new_username
+        if new_email and new_email != current_user.email:
+            if not User.query.filter_by(email=new_email).first():
+                current_user.email = new_email
+        current_user.first_name = request.form.get("first_name", "").strip() or None
+        current_user.last_name  = request.form.get("last_name",  "").strip() or None
         db.session.commit()
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))
