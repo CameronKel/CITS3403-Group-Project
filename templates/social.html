@@ -32,7 +32,7 @@
         <p class="text-xs text-slate-400">{{ post.created_at.strftime('%d %b · %H:%M') }}</p>
       </div>
       <span class="ml-auto text-xs bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 rounded-full">
-        {% if post.post_type == 'goal' %}🏆 Goal{% else %}💪 Workout{% endif %}
+        {% if post.post_type == 'goal' %}🏆 Goal{% elif post.post_type == 'achievement' %}🏅 Achievement{% else %}💪 Workout{% endif %}
       </span>
     </div>
     <p class="text-sm text-slate-700">{{ post.content }}</p>

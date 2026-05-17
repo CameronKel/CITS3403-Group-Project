@@ -214,6 +214,27 @@ def share_goal(id):
     db.session.commit()
     return jsonify({"status": "shared"})
 
+@app.route("/achievements/<key>/share", methods=["POST"])
+@login_required
+def share_achievement(key):
+    a = BY_KEY.get(key)
+    if not a:
+        return jsonify({"error": "Unknown achievement"}), 404
+    earned = UserAchievement.query.filter_by(
+        user_id=current_user.id, achievement_key=key
+    ).first()
+    if not earned:
+        return jsonify({"error": "Not earned"}), 403
+    post = FeedPost(
+        user_id=current_user.id,
+        post_type="achievement",
+        content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}",
+    )
+    db.session.add(post)
+    db.session.commit()
+    return jsonify({"status": "shared"})
+
+
 @app.route("/social")
 @login_required
 def social():
