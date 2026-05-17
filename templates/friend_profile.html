@@ -48,6 +48,12 @@
     </div>
   </div>
 </div>
+{% if viewed_user.bio %}
+<div class="card p-6 mb-6">
+  <h2 class="text-base font-semibold text-slate-900 mb-2">About</h2>
+  <p class="text-sm text-slate-600">{{ viewed_user.bio }}</p>
+</div>
+{% endif %}
 
 <!-- Achievements -->
 <div class="card p-6">
