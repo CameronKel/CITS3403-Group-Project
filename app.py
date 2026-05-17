@@ -13,7 +13,7 @@ from flask_login import (
 from flask_wtf.csrf import CSRFProtect
 
 from forms import LoginForm, SignupForm
-from datetime import date
+from datetime import date, datetime
 from models import Exercise, FeedPost, Goal, User, UserSettings, db
 
 load_dotenv()
@@ -109,7 +109,7 @@ def dashboard():
 
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
-        active_goal=active_goal, recent=recent)
+        active_goal=active_goal, recent=recent, now=datetime.now())
 
 
 @app.route("/log", methods=["GET", "POST"])
