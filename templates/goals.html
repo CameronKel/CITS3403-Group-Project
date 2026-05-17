@@ -100,7 +100,10 @@
   function shareGoal(id) {
     const csrf = document.querySelector('[name=csrf_token]').value;
     fetch(`/goals/${id}/share`, { method: 'POST', headers: {'X-CSRFToken': csrf} })
-      .then(() => alert('Shared to your feed! 🎉'));
+      .then(r => {
+        if (r.ok) alert('Shared to your feed! 🎉');
+        else alert('Could not share this goal.');
+      });
   }
 </script>
 {% endblock %}
