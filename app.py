@@ -390,6 +390,7 @@ def settings():
                 current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
+        current_user.bio        = request.form.get("bio", "").strip() or None
 
         new_password = request.form.get("new_password", "")
         if new_password:
