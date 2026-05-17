@@ -108,39 +108,42 @@ def dashboard():
                     .filter_by(user_id=current_user.id)
                     .order_by(Exercise.date.desc())
                     .limit(5).all())
-    streak = 0
-    check_date = today
-    while True:
-        has_exercise = Exercise.query.filter(
-            Exercise.user_id == current_user.id,
-            Exercise.date == check_date
-        ).first()
-        if has_exercise:
-            streak += 1
-            check_date -= timedelta(days=1)
-        else:
-            break
-    current_user.streak = streak
-    db.session.commit()
 
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
-        active_goals=active_goals, recent=recent, now=datetime.now(), streak=streak)
+        active_goals=active_goals, recent=recent, now=datetime.now())
+
+
+def _parse_exercise_form(form):
+    """Pull validated kwargs out of the exercise form. Raises ValueError on bad input."""
+    try:
+        kwargs = dict(
+            type      = form["type"],
+            date      = date.fromisoformat(form["date"]),
+            duration  = int(form["duration"]),
+            intensity = form["intensity"],
+            distance  = float(form["distance"]) if form.get("distance") else None,
+            notes     = form.get("notes") or None,
+        )
+    except (KeyError, ValueError, TypeError):
+        raise ValueError("Please fill in all required fields with valid values.")
+    if not kwargs["type"] or not kwargs["intensity"]:
+        raise ValueError("Please fill in all required fields with valid values.")
+    if kwargs["duration"] < 1 or kwargs["duration"] > 600:
+        raise ValueError("Duration must be between 1 and 600 minutes.")
+    return kwargs
 
 
 @app.route("/log", methods=["GET", "POST"])
 @login_required
 def log_exercise():
     if request.method == "POST":
-        exercise = Exercise(
-            user_id   = current_user.id,
-            type      = request.form["type"],
-            date      = date.fromisoformat(request.form["date"]),
-            duration  = int(request.form["duration"]),
-            intensity = request.form["intensity"],
-            distance  = float(request.form["distance"]) if request.form.get("distance") else None,
-            notes     = request.form.get("notes") or None,
-        )
+        try:
+            kwargs = _parse_exercise_form(request.form)
+        except ValueError as e:
+            flash(str(e), "error")
+            return render_template("log_exercise.html", active_page="log_exercise")
+        exercise = Exercise(user_id=current_user.id, **kwargs)
         db.session.add(exercise)
         db.session.commit()
         newly_earned = award_achievements(current_user.id)
@@ -180,12 +183,13 @@ def edit_exercise(id):
         flash("Workout not found.", "error")
         return redirect(url_for("history"))
     if request.method == "POST":
-        exercise.type      = request.form["type"]
-        exercise.date      = date.fromisoformat(request.form["date"])
-        exercise.duration  = int(request.form["duration"])
-        exercise.intensity = request.form["intensity"]
-        exercise.distance  = float(request.form["distance"]) if request.form.get("distance") else None
-        exercise.notes     = request.form.get("notes") or None
+        try:
+            kwargs = _parse_exercise_form(request.form)
+        except ValueError as e:
+            flash(str(e), "error")
+            return render_template("edit_exercise.html", active_page="history", exercise=exercise)
+        for k, v in kwargs.items():
+            setattr(exercise, k, v)
         db.session.commit()
         flash("Workout updated!", "success")
         return redirect(url_for("history"))
@@ -329,27 +333,18 @@ def settings():
         s.training_days     = ",".join(request.form.getlist("training_days"))
         s.reminder_time     = request.form.get("reminder_time", "07:30")
         s.privacy           = request.form.get("privacy", "public")
-        current_user.first_name = request.form.get("first_name", "").strip() or None
-        current_user.last_name  = request.form.get("last_name", "").strip() or None
-        current_user.bio        = request.form.get("bio", "").strip() or None
         new_username = request.form.get("username", "").strip()
         new_email    = request.form.get("email", "").strip().lower()
-        error = False
         if new_username and new_username != current_user.username:
-            if User.query.filter_by(username=new_username).first():
-                flash("That username is already taken.", "error")
-                error = True
-            else:
+            if not User.query.filter_by(username=new_username).first():
                 current_user.username = new_username
         if new_email and new_email != current_user.email:
-            if User.query.filter_by(email=new_email).first():
-                flash("That email is already registered.", "error")
-                error = True
-            else:
+            if not User.query.filter_by(email=new_email).first():
                 current_user.email = new_email
-        if not error:
-            flash("Settings saved!", "success")
+        current_user.first_name = request.form.get("first_name", "").strip() or None
+        current_user.last_name  = request.form.get("last_name",  "").strip() or None
         db.session.commit()
+        flash("Settings saved!", "success")
         return redirect(url_for("settings"))
     return render_template("settings.html", active_page="settings", s=s)
 
@@ -376,11 +371,9 @@ def search_users():
     q = request.args.get("q", "").strip()
     if len(q) < 2:
         return jsonify([])
-    friend_ids = [f.id for f in current_user.friends]
-    excluded   = friend_ids + [current_user.id]
     users = User.query.filter(
         User.username.ilike(f"%{q}%"),
-        User.id.notin_(excluded)
+        User.id != current_user.id
     ).limit(10).all()
     return jsonify([{"id": u.id, "username": u.username} for u in users])
 
@@ -391,7 +384,6 @@ def add_friend(user_id):
     user = db.session.get(User, user_id)
     if user and user not in current_user.friends:
         current_user.friends.append(user)
-        user.friends.append(current_user)
         db.session.commit()
     return jsonify({"status": "ok"})
 
