@@ -129,6 +129,7 @@
     fetch(`/goals/${id}/share`, { method: 'POST', headers: {'X-CSRFToken': csrf} })
       .then(r => {
         if (r.ok) alert('Shared to your feed! 🎉');
+        else if (r.status === 400) alert('Already shared!');
         else alert('Could not share this goal.');
       });
   }
