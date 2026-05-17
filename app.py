@@ -328,6 +328,17 @@ def settings():
                 current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
+
+        new_password = request.form.get("new_password", "")
+        if new_password:
+            if not current_user.check_password(request.form.get("current_password", "")):
+                flash("Current password is incorrect.", "error")
+                return redirect(url_for("settings"))
+            if len(new_password) < 8:
+                flash("New password must be at least 8 characters.", "error")
+                return redirect(url_for("settings"))
+            current_user.set_password(new_password)
+
         db.session.commit()
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))
