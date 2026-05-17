@@ -114,19 +114,36 @@ def dashboard():
         active_goals=active_goals, recent=recent, now=datetime.now())
 
 
+def _parse_exercise_form(form):
+    """Pull validated kwargs out of the exercise form. Raises ValueError on bad input."""
+    try:
+        kwargs = dict(
+            type      = form["type"],
+            date      = date.fromisoformat(form["date"]),
+            duration  = int(form["duration"]),
+            intensity = form["intensity"],
+            distance  = float(form["distance"]) if form.get("distance") else None,
+            notes     = form.get("notes") or None,
+        )
+    except (KeyError, ValueError, TypeError):
+        raise ValueError("Please fill in all required fields with valid values.")
+    if not kwargs["type"] or not kwargs["intensity"]:
+        raise ValueError("Please fill in all required fields with valid values.")
+    if kwargs["duration"] < 1 or kwargs["duration"] > 600:
+        raise ValueError("Duration must be between 1 and 600 minutes.")
+    return kwargs
+
+
 @app.route("/log", methods=["GET", "POST"])
 @login_required
 def log_exercise():
     if request.method == "POST":
-        exercise = Exercise(
-            user_id   = current_user.id,
-            type      = request.form["type"],
-            date      = date.fromisoformat(request.form["date"]),
-            duration  = int(request.form["duration"]),
-            intensity = request.form["intensity"],
-            distance  = float(request.form["distance"]) if request.form.get("distance") else None,
-            notes     = request.form.get("notes") or None,
-        )
+        try:
+            kwargs = _parse_exercise_form(request.form)
+        except ValueError as e:
+            flash(str(e), "error")
+            return render_template("log_exercise.html", active_page="log_exercise")
+        exercise = Exercise(user_id=current_user.id, **kwargs)
         db.session.add(exercise)
         db.session.commit()
         newly_earned = award_achievements(current_user.id)
@@ -166,12 +183,13 @@ def edit_exercise(id):
         flash("Workout not found.", "error")
         return redirect(url_for("history"))
     if request.method == "POST":
-        exercise.type      = request.form["type"]
-        exercise.date      = date.fromisoformat(request.form["date"])
-        exercise.duration  = int(request.form["duration"])
-        exercise.intensity = request.form["intensity"]
-        exercise.distance  = float(request.form["distance"]) if request.form.get("distance") else None
-        exercise.notes     = request.form.get("notes") or None
+        try:
+            kwargs = _parse_exercise_form(request.form)
+        except ValueError as e:
+            flash(str(e), "error")
+            return render_template("edit_exercise.html", active_page="history", exercise=exercise)
+        for k, v in kwargs.items():
+            setattr(exercise, k, v)
         db.session.commit()
         flash("Workout updated!", "success")
         return redirect(url_for("history"))
