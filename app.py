@@ -182,11 +182,17 @@ def edit_exercise(id):
 @login_required
 def goals():
     if request.method == "POST":
+        try:
+            deadline = date.fromisoformat(request.form["deadline"])
+        except (KeyError, ValueError):
+            return jsonify({"error": "Invalid deadline."}), 400
+        if deadline < date.today():
+            return jsonify({"error": "Deadline cannot be in the past."}), 400
         goal = Goal(
             user_id      = current_user.id,
             goal_type    = request.form["goal_type"],
             target_value = float(request.form["target_value"]),
-            deadline     = date.fromisoformat(request.form["deadline"]),
+            deadline     = deadline,
         )
         db.session.add(goal)
         db.session.commit()
@@ -325,17 +331,6 @@ def settings():
                 current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
-
-        new_password = request.form.get("new_password", "")
-        if new_password:
-            if not current_user.check_password(request.form.get("current_password", "")):
-                flash("Current password is incorrect.", "error")
-                return redirect(url_for("settings"))
-            if len(new_password) < 8:
-                flash("New password must be at least 8 characters.", "error")
-                return redirect(url_for("settings"))
-            current_user.set_password(new_password)
-
         db.session.commit()
         flash("Settings saved!", "success")
         return redirect(url_for("settings"))
