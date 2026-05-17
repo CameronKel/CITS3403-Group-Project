@@ -268,13 +268,14 @@ def share_achievement(key):
     if not earned:
         return jsonify({"error": "Not earned"}), 403
     already_shared = FeedPost.query.filter_by(
-        user_id=current_user.id, post_type="achievement", content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}"
+        user_id=current_user.id, post_type="achievement", achievement_key=key
     ).first()
     if already_shared:
         return jsonify({"error": "Already shared"}), 400
     post = FeedPost(
         user_id=current_user.id,
         post_type="achievement",
+        achievement_key=key,
         content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}",
     )
     db.session.add(post)
