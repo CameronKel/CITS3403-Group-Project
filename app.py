@@ -429,8 +429,11 @@ def search_users():
 @login_required
 def add_friend(user_id):
     user = db.session.get(User, user_id)
-    if user and user not in current_user.friends:
-        current_user.friends.append(user)
+    if user and user.id != current_user.id:
+        if user not in current_user.friends:
+            current_user.friends.append(user)
+        if current_user not in user.friends:
+            user.friends.append(current_user)
         db.session.commit()
     return jsonify({"status": "ok"})
 
