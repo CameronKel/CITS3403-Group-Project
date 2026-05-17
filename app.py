@@ -111,9 +111,26 @@ def dashboard():
                     .order_by(Exercise.date.desc())
                     .limit(5).all())
 
+    # Calculate current streak
+    from datetime import timedelta
+    streak = 0
+    check_date = today
+    while True:
+        has_exercise = Exercise.query.filter(
+            Exercise.user_id == current_user.id,
+            Exercise.date == check_date
+        ).first()
+        if has_exercise:
+            streak += 1
+            check_date -= timedelta(days=1)
+        else:
+            break
+    current_user.streak = streak
+    db.session.commit()
+
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
-        active_goals=active_goals, recent=recent, now=datetime.now())
+        active_goals=active_goals, recent=recent, now=datetime.now(), streak=streak)
 
 
 def _parse_exercise_form(form):
@@ -239,6 +256,11 @@ def share_goal(id):
     goal = db.session.get(Goal, id)
     if not goal or goal.user_id != current_user.id:
         return jsonify({"error": "Not found"}), 404
+    already_shared = FeedPost.query.filter_by(
+        user_id=current_user.id, post_type="goal", goal_id=goal.id
+    ).first()
+    if already_shared:
+        return jsonify({"error": "Already shared"}), 400
     post = FeedPost(
         user_id   = current_user.id,
         post_type = "goal",
@@ -260,6 +282,11 @@ def share_achievement(key):
     ).first()
     if not earned:
         return jsonify({"error": "Not earned"}), 403
+    already_shared = FeedPost.query.filter_by(
+        user_id=current_user.id, post_type="achievement", content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}"
+    ).first()
+    if already_shared:
+        return jsonify({"error": "Already shared"}), 400
     post = FeedPost(
         user_id=current_user.id,
         post_type="achievement",
