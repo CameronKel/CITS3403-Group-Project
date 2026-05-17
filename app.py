@@ -208,11 +208,17 @@ def edit_exercise(id):
 @login_required
 def goals():
     if request.method == "POST":
+        try:
+            deadline = date.fromisoformat(request.form["deadline"])
+        except (KeyError, ValueError):
+            return jsonify({"error": "Invalid deadline."}), 400
+        if deadline < date.today():
+            return jsonify({"error": "Deadline cannot be in the past."}), 400
         goal = Goal(
             user_id      = current_user.id,
             goal_type    = request.form["goal_type"],
             target_value = float(request.form["target_value"]),
-            deadline     = date.fromisoformat(request.form["deadline"]),
+            deadline     = deadline,
         )
         db.session.add(goal)
         db.session.commit()

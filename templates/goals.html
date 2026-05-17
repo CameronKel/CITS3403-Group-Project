@@ -84,14 +84,18 @@
 {% block extra_scripts %}
 <script>
   const d = new Date();
-  const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-  document.getElementById('deadline').value = endOfMonth.toISOString().split('T')[0];
+  const today = d.toISOString().split('T')[0];
+  const endOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+  const deadlineInput = document.getElementById('deadline');
+  deadlineInput.min = today;
+  deadlineInput.value = endOfMonth;
 
     document.getElementById('goalForm').addEventListener('submit', function(e) {
     e.preventDefault();
     fetch('{{ url_for("goals") }}', { method: 'POST', body: new FormData(this) })
-      .then(r => r.json())
-      .then(() => {
+      .then(r => r.json().then(data => ({ ok: r.ok, data })))
+      .then(({ ok, data }) => {
+        if (!ok) { alert(data.error || 'Could not create goal.'); return; }
         document.getElementById('goalSuccess').classList.remove('hidden');
         setTimeout(() => location.reload(), 800);
       });
