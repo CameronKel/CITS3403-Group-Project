@@ -111,22 +111,7 @@ def dashboard():
                     .order_by(Exercise.date.desc())
                     .limit(5).all())
 
-    # Calculate current streak
-    from datetime import timedelta
-    streak = 0
-    check_date = today
-    while True:
-        has_exercise = Exercise.query.filter(
-            Exercise.user_id == current_user.id,
-            Exercise.date == check_date
-        ).first()
-        if has_exercise:
-            streak += 1
-            check_date -= timedelta(days=1)
-        else:
-            break
-    current_user.streak = streak
-    db.session.commit()
+    streak = current_user.compute_streak(today)
 
     return render_template("dashboard.html", active_page="dashboard",
         week_count=week_count, week_minutes=week_minutes, month_minutes=month_minutes,
@@ -283,13 +268,14 @@ def share_achievement(key):
     if not earned:
         return jsonify({"error": "Not earned"}), 403
     already_shared = FeedPost.query.filter_by(
-        user_id=current_user.id, post_type="achievement", content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}"
+        user_id=current_user.id, post_type="achievement", achievement_key=key
     ).first()
     if already_shared:
         return jsonify({"error": "Already shared"}), 400
     post = FeedPost(
         user_id=current_user.id,
         post_type="achievement",
+        achievement_key=key,
         content=f"{a.emoji} Unlocked achievement: {a.name} — {a.description}",
     )
     db.session.add(post)
@@ -317,11 +303,13 @@ def profile():
     completed_goals = sum(1 for g in Goal.query.filter_by(user_id=current_user.id).all()
                           if g.is_completed_now)
     achievements_status = status_for_user(current_user.id)
+    streak = current_user.compute_streak()
     return render_template("profile.html", active_page="profile",
         total_workouts=total_workouts,
         total_distance=round(total_distance, 1),
         completed_goals=completed_goals,
-        achievements_status=achievements_status)
+        achievements_status=achievements_status,
+        streak=streak)
 
 
 @app.route("/users/<username>")
@@ -383,13 +371,22 @@ def settings():
                 func.lower(User.username) == new_username.lower(),
                 User.id != current_user.id,
             ).first()
-            if not taken:
-                current_user.username = new_username
+            if taken:
+                flash(f"Username '{new_username}' is already taken.", "error")
+                return redirect(url_for("settings"))
+            current_user.username = new_username
         if new_email and new_email != current_user.email:
-            if not User.query.filter_by(email=new_email).first():
-                current_user.email = new_email
+            taken = User.query.filter(
+                User.email == new_email,
+                User.id != current_user.id,
+            ).first()
+            if taken:
+                flash(f"Email '{new_email}' is already in use.", "error")
+                return redirect(url_for("settings"))
+            current_user.email = new_email
         current_user.first_name = request.form.get("first_name", "").strip() or None
         current_user.last_name  = request.form.get("last_name",  "").strip() or None
+        current_user.bio        = request.form.get("bio", "").strip() or None
 
         new_password = request.form.get("new_password", "")
         if new_password:
@@ -429,9 +426,10 @@ def search_users():
     q = request.args.get("q", "").strip()
     if len(q) < 2:
         return jsonify([])
+    excluded_ids = {current_user.id} | {f.id for f in current_user.friends}
     users = User.query.filter(
         User.username.ilike(f"%{q}%"),
-        User.id != current_user.id
+        ~User.id.in_(excluded_ids),
     ).limit(10).all()
     return jsonify([{"id": u.id, "username": u.username} for u in users])
 
@@ -440,8 +438,11 @@ def search_users():
 @login_required
 def add_friend(user_id):
     user = db.session.get(User, user_id)
-    if user and user not in current_user.friends:
-        current_user.friends.append(user)
+    if user and user.id != current_user.id:
+        if user not in current_user.friends:
+            current_user.friends.append(user)
+        if current_user not in user.friends:
+            user.friends.append(current_user)
         db.session.commit()
     return jsonify({"status": "ok"})
 

@@ -45,6 +45,24 @@ class User(UserMixin, db.Model):
     def check_password(self, password: str) -> bool:
         return check_password_hash(self.password_hash, password)
 
+    def compute_streak(self, today=None) -> int:
+        """Consecutive days ending today on which the user logged at least one
+        exercise. One DB round-trip regardless of streak length."""
+        from datetime import timedelta
+        today = today or date.today()
+        rows = (db.session.query(Exercise.date)
+                .filter(Exercise.user_id == self.id,
+                        Exercise.date <= today,
+                        Exercise.date >= today - timedelta(days=365))
+                .distinct().all())
+        days = {r[0] for r in rows}
+        streak = 0
+        d = today
+        while d in days:
+            streak += 1
+            d -= timedelta(days=1)
+        return streak
+
     def __repr__(self) -> str:
         return f"<User {self.username}>"
 
@@ -144,13 +162,14 @@ class Goal(db.Model):
 class FeedPost(db.Model):
     __tablename__ = "feed_posts"
 
-    id          = db.Column(db.Integer, primary_key=True)
-    user_id     = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    post_type   = db.Column(db.String(32), nullable=False)
-    content     = db.Column(db.Text, nullable=False)
-    exercise_id = db.Column(db.Integer, db.ForeignKey("exercises.id"), nullable=True)
-    goal_id     = db.Column(db.Integer, db.ForeignKey("goals.id"), nullable=True)
-    created_at  = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    post_type       = db.Column(db.String(32), nullable=False)
+    content         = db.Column(db.Text, nullable=False)
+    exercise_id     = db.Column(db.Integer, db.ForeignKey("exercises.id"), nullable=True)
+    goal_id         = db.Column(db.Integer, db.ForeignKey("goals.id"), nullable=True)
+    achievement_key = db.Column(db.String(64), nullable=True)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
     user     = db.relationship("User", backref="posts")
     exercise = db.relationship("Exercise", backref="feed_posts")
