@@ -317,16 +317,22 @@ def settings():
         s.privacy           = request.form.get("privacy", "public")
         new_username = request.form.get("username", "").strip()
         new_email    = request.form.get("email", "").strip().lower()
+        error = False
         if new_username and new_username != current_user.username:
-            if not User.query.filter_by(username=new_username).first():
+            if User.query.filter_by(username=new_username).first():
+                flash("That username is already taken.", "error")
+                error = True
+            else:
                 current_user.username = new_username
         if new_email and new_email != current_user.email:
-            if not User.query.filter_by(email=new_email).first():
+            if User.query.filter_by(email=new_email).first():
+                flash("That email is already registered.", "error")
+                error = True
+            else:
                 current_user.email = new_email
-        current_user.first_name = request.form.get("first_name", "").strip() or None
-        current_user.last_name  = request.form.get("last_name",  "").strip() or None
+        if not error:
+            flash("Settings saved!", "success")
         db.session.commit()
-        flash("Settings saved!", "success")
         return redirect(url_for("settings"))
     return render_template("settings.html", active_page="settings", s=s)
 
@@ -353,9 +359,11 @@ def search_users():
     q = request.args.get("q", "").strip()
     if len(q) < 2:
         return jsonify([])
+    friend_ids = [f.id for f in current_user.friends]
+    excluded   = friend_ids + [current_user.id]
     users = User.query.filter(
         User.username.ilike(f"%{q}%"),
-        User.id != current_user.id
+        User.id.notin_(excluded)
     ).limit(10).all()
     return jsonify([{"id": u.id, "username": u.username} for u in users])
 
@@ -366,6 +374,7 @@ def add_friend(user_id):
     user = db.session.get(User, user_id)
     if user and user not in current_user.friends:
         current_user.friends.append(user)
+        user.friends.append(current_user)
         db.session.commit()
     return jsonify({"status": "ok"})
 
